@@ -14,9 +14,8 @@ mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log("MongoDB connected successfully"))
 .catch((err) => console.error("MongoDB connection error:", err));
 
-
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.urlencoded({ extended: false }));
 app.use(session({ secret: 'secretkey', resave: false, saveUninitialized: false }));
 app.use(passport.initialize());
 app.use(passport.session());
