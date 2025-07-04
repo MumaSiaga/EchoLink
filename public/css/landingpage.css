@@ -69,13 +69,14 @@ nav ul li a:active {
   flex-direction: column;
   align-items: center;  
   justify-content: center;
-  background-color: #333;
+  background-image: url('/images/chat.jpg');
+  
   color: white;
   padding: 100px 20px;     
   min-height: 600px;    
   text-align: center;
 }
-hero p{
+.hero p{
     font-size: 2em;
 }
 .hero .buttons {
@@ -219,4 +220,73 @@ footer ul li a {
 
 footer ul li a:hover {
   color: #333;
+}
+@media (max-width: 430px) {
+  nav {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 10px 20px;
+  }
+
+  nav ul {
+    flex-direction: column;
+    gap: 15px;
+    align-items: flex-start;
+  }
+
+  .hero {
+    padding: 60px 15px;
+    min-height: auto;
+  }
+
+  .hero h1 {
+    font-size: 2em;
+  }
+
+  .hero p {
+    font-size: 1.25em;
+  }
+
+  .hero .buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .chatButton,
+  .LearnMoreButton,
+  .Join {
+    width: 100%;
+    font-size: 1rem;
+    padding: 10px 20px;
+  }
+
+  .features {
+    padding: 30px 15px;
+  }
+
+  .feature-list {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .feature-item {
+    width: 90%;
+  }
+
+  footer {
+    padding: 20px 10px;
+  }
+
+  footer ul {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  footer p {
+    font-size: 0.85rem;
+  }
+
+  footer ul li a {
+    font-size: 0.85rem;
+  }
 }

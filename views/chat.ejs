@@ -1,18 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>chat</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EchoLink Chat</title>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/css/chat.css" />
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    window.currentUserId = "<%= user._id %>";
+  </script>
+  <script defer src="/js/chat.js"></script>
 </head>
 <body>
-   <h3>Welcome, <%= username %></h3>
-    <div id="chat-container">
-      
-    </div>
-    <form id="chat-form">
-        <input type="text" id="message-input" placeholder="Type your message..." required>
-        <button type="submit">Send</button>
+<div class="chat-container"> 
+  <section class="info-panel">
+    <p>Welcome to the EchoLink chat!</p>
+    <p>Connect with others anonymously and share your thoughts.</p>
+    <p>Remember to keep the conversation respectful and friendly.</p>
+    <p>Enjoy your chat experience!</p>
+  </section>
+
+  <main class="chat-wrapper" role="main">
+    <header class="chat-header">
+      <h1>Chat</h1>
+      <p id="status" aria-live="polite" aria-atomic="true">Looking for a match...</p>
+    </header>
+
+    <section id="chat-box" class="chat-box" aria-live="polite" tabindex="0"></section>
+
+    <form id="chat-form" class="chat-form" aria-label="Send a message">
+      <input
+        type="text"
+        id="msg"
+        placeholder="Type your message..."
+        autocomplete="off"
+        required
+        aria-required="true"
+        aria-describedby="sendButtonLabel"
+      />
+      <button type="submit" aria-label="Send message" id="sendButtonLabel">➤</button>
     </form>
+  </main>
+</div>
 </body>
+
 </html>

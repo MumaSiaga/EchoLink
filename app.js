@@ -7,6 +7,12 @@ const passport = require('passport');
 const session = require('express-session');
 require('./config/auth');
 
+
+app.set('view engine', 'ejs');
+const http = require('http').createServer(app);
+const io = require('socket.io')(http);
+require('./sockets/chatSocket')(io);
+
 app.set('view engine', 'ejs');
 
 app.set('views', path.join(__dirname, 'views'));
@@ -26,6 +32,4 @@ app.use('/auth', require('./routes/authRoutes'));
 app.use('/chat', require('./routes/chatRoutes'));
 app.use(express.static('public'));
 const PORT = process.env.PORT || 3000;
-app.listen(PORT,()=>{
-    console.log(`Server is running on port ${PORT}`);
-});
+http.listen(PORT, () => console.log(`Server running on port ${PORT}`));
