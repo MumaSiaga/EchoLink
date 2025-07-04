@@ -41,7 +41,7 @@ form{
     gap: 15px;
 }
 
-/* Inputs */
+
 input {
     width: 100%;
     padding: 14px 18px;
@@ -56,7 +56,6 @@ input:focus {
     outline: none;
 }
 
-/* Submit button */
 button[type="submit"] {
     width: 100%;
     padding: 14px;
@@ -73,7 +72,7 @@ button[type="submit"]:hover {
     background-color: #1f1f1f;
 }
 
-/* Google button */
+
 .google-btn {
     display: flex;
     align-items: center;
@@ -99,20 +98,36 @@ button[type="submit"]:hover {
 
 @media (max-width: 600px) {
   section {
-    width: 90%;
-    padding: 40px 25px;
+    width: 100%;
+    padding: 30px 15px; /* slightly reduced padding to avoid crowding */
+    box-sizing: border-box;
+  }
+
+  form {
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
   }
 
   form h1 {
-    font-size: 2rem;
+    font-size: 2.2rem;
+    text-align: center;
   }
 
-  input, button[type="submit"], .google-btn {
-    font-size: 1rem;
-    padding: 12px;
+  input,
+  button[type="submit"],
+  .google-btn {
+    font-size: 1.1rem;
+    padding: 14px 16px;
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 12px;
   }
 
   .google-btn img {
-    height: 18px;
+    height: 20px;
+    vertical-align: middle;
+    margin-right: 8px;
   }
 }
+
