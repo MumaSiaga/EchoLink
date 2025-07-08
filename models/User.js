@@ -14,8 +14,16 @@ const userSchema = new mongoose.Schema({
 
   googleId: { type: String, default: null },
   age: Number,
+   profilePicture: {
+    type: String,
+    default: '/images/profile.jpg'  // fallback image
+  },
 
- 
+  status: {
+    type: String,
+    default: ''
+  },
+  bio: { type: String, default: '' },
   password: { type: String, default: null }, 
 
   createdAt: {

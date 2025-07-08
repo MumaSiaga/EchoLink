@@ -1,3 +1,33 @@
+.icon-bar {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  height: 60px;
+  background-color: black;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+}
+
+.icon-bar a {
+  color: white;
+  text-align: center;
+  flex: 1;
+  font-size: 26px;
+  padding: 10px 0;
+  transition: transform 0.2s ease;
+}
+
+.icon-bar a:hover {
+  transform: scale(1.2);
+}
+
+
+
+
+
 
 * {
   margin: 0;
@@ -9,6 +39,7 @@ body, html {
   height: 100%;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background-color: #f5f7fa;
+  padding-top: 30px;
 }
 
 
@@ -174,6 +205,14 @@ body, html {
   background: transparent;
 }
 @media (max-width: 768px) {
+    .icon-bar {
+    height: 65px;
+  }
+
+  .icon-bar a {
+    font-size: 22px;
+    padding: 14px 0;
+  }
   .chat-container {
     flex-direction: column;
     height: auto;
