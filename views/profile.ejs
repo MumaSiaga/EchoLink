@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="/css/profile.css">
+</head>
+<body>
+  <header>
+    <div class="icon-bar">
+      <a href="/chat"><i class="fa fa-home"></i></a>
+      <a href="/profile"><i class="fa fa-user"></i></a>
+      <a href="/status"><i class="fa fa-plus-circle" style="color:white;"></i></a>
+      <a href="/notifications"><i class="fa fa-bell" style="color:white;"></i></a>
+    </div>
+  </header>
+  
+  <main>
+  <hr>
+  <img
+  src="<%= user.profilePicture || '/images/default-profile.png' %>"
+  class="profile-picture"
+  id="profilePic"
+  alt="Profile Picture"
+  style="cursor: pointer;"
+/>
+
+<div id="profileModal" class="modal">
+  <div class="modal-content" id="modalContent">
+    <div class="modal-buttons" id="modalButtons">
+      <button onclick="viewPhoto()">View Profile Photo</button>
+      <button onclick="document.getElementById('profilePictureInput').click()">Change Profile Photo</button>
+      <button onclick="closeModal()">Close</button>
+    </div>
+
+    <!-- This section shows when user chooses "View Photo" -->
+    <div id="photoViewer" style="display: none;">
+      <img id="fullPhoto" src="" alt="Profile Photo" style="max-width: 100%; border-radius: 8px;">
+      <br>
+      <button onclick="backToOptions()" style="margin-top: 15px;">Back</button>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden Upload Form -->
+<form id="uploadForm" action="/profile/upload" method="POST" enctype="multipart/form-data">
+  <input
+    type="file"
+    name="profilePicture"
+    id="profilePictureInput"
+    style="display: none;"
+    accept="image/*"
+    onchange="document.getElementById('uploadForm').submit()"
+  />
+</form>
+<hr>
+  <p><span id="bioText"><%= user.bio || "" %></span></p>
+<button id="editBioBtn">Add / Edit Bio</button>
+
+<!-- Hidden form to edit bio -->
+<form id="bioForm" action="/profile/bio" method="POST" style="display:none; margin-top:10px;">
+  <textarea name="bio" rows="4" cols="40" placeholder="Write your bio..."><%= user.bio || "" %></textarea>
+  <br>
+  <button type="submit">Save Bio</button>
+  <button type="button" id="cancelBioBtn">Cancel</button>
+</form>
+
+    <p>Email: <%= user.email %></p>
+    <p>Joined on: <%= user.createdAt.toLocaleDateString() %></p>
+    <button onclick="window.location.href='auth/logout'" class="logout-button">Logout</button>
+  </main>
+
+  <script src="/js/profile.js"></script>
+</body>
+</html>
