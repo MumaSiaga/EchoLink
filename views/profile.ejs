@@ -18,7 +18,7 @@
   </header>
   
   <main>
-  <hr>
+
   <img
   src="<%= user.profilePicture || '/images/default-profile.png' %>"
   class="profile-picture"
@@ -35,7 +35,7 @@
       <button onclick="closeModal()">Close</button>
     </div>
 
-    <!-- This section shows when user chooses "View Photo" -->
+    
     <div id="photoViewer" style="display: none;">
       <img id="fullPhoto" src="" alt="Profile Photo" style="max-width: 100%; border-radius: 8px;">
       <br>
@@ -44,7 +44,7 @@
   </div>
 </div>
 
-<!-- Hidden Upload Form -->
+
 <form id="uploadForm" action="/profile/upload" method="POST" enctype="multipart/form-data">
   <input
     type="file"
@@ -59,7 +59,7 @@
   <p><span id="bioText"><%= user.bio || "" %></span></p>
 <button id="editBioBtn">Add / Edit Bio</button>
 
-<!-- Hidden form to edit bio -->
+
 <form id="bioForm" action="/profile/bio" method="POST" style="display:none; margin-top:10px;">
   <textarea name="bio" rows="4" cols="40" placeholder="Write your bio..."><%= user.bio || "" %></textarea>
   <br>
@@ -67,10 +67,59 @@
   <button type="button" id="cancelBioBtn">Cancel</button>
 </form>
 
+<div class="stories-container">
+  <div class="story-card add-story" onclick="addStory()">
+    <div class="plus-icon">+</div>
+    <div class="story-label">Add Story</div>
+  </div>
+
+  <div class="story-card view-story" onclick="viewMyStory()">
+    <% 
+      let activeStories = (user.status || []).filter(s => (new Date() - new Date(s.createdAt)) < 24 * 60 * 60 * 1000);
+      let storyToShow = activeStories.length > 0 ? activeStories[activeStories.length -1] : null;
+    %>
+
+    <% if (storyToShow) { %>
+      <div class="story-label">View My Story</div>
+    <% } else { %>
+      <div class="no-story-text">No Active Story</div>
+      <div class="story-label">View My Story</div>
+    <% } %>
+  </div>
+</div>
+
+  <p>Age: <span id="ageDisplay"><%= user.age || "N/A" %></span></p>
+<button id="editAgeBtn">Edit Age</button>
+
+
+<div id="ageModal" class="modal" style="display: none;">
+  <div class="modal-content">
+    <h3>Edit Your Age</h3>
+    <form id="ageForm" action="/profile/age" method="POST">
+      <input type="number" name="age" id="ageInput" min="1" max="120" value="<%= user.age || '' %>" required>
+      <br><br>
+      <button type="submit">Save</button>
+      <button type="button" onclick="closeAgeModal()">Cancel</button>
+    </form>
+  </div>
+</div>
     <p>Email: <%= user.email %></p>
     <p>Joined on: <%= user.createdAt.toLocaleDateString() %></p>
     <button onclick="window.location.href='auth/logout'" class="logout-button">Logout</button>
   </main>
+
+
+
+  <script>
+  window.hasStories = <%- JSON.stringify(user.status && user.status.some(s => new Date() - new Date(s.createdAt) < 86400000)) %>;
+  window.currentUserId = "<%= user._id %>";
+
+  const userId = "<%= user._id %>";
+  function viewMyStory() {
+    window.location.href = `/stories/view/${userId}`;
+  }
+
+</script>
 
   <script src="/js/profile.js"></script>
 </body>

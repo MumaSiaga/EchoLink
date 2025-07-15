@@ -3,6 +3,17 @@ const User = require('../models/User');
 
 let waitingUsers = [];
 const socketRoomMap = new Map();
+const activeMatches = new Map();
+
+
+const recentUnmatches = new Map();
+
+const UNMATCH_BLOCK_TIME = 15 * 60 * 1000; 
+
+
+function getPairKey(id1, id2) {
+  return [id1, id2].sort().join('-');
+}
 
 module.exports = (io) => {
   io.on('connection', (socket) => {
@@ -11,44 +22,70 @@ module.exports = (io) => {
     socket.on('joinQueue', async ({ userId }) => {
       try {
         const user = await User.findById(userId);
-        if (!user) {
-          console.error('User not found:', userId);
-          return;
-        }
+        if (!user) return console.error('User not found:', userId);
 
         const userStrId = user._id.toString();
 
-        const matchIndex = waitingUsers.findIndex(u =>
+        if (activeMatches.has(userStrId)) {
+          const { roomId, chatId } = activeMatches.get(userStrId);
+          socket.join(roomId);
+          socketRoomMap.set(socket.id, roomId);
+
+          const chat = await Chat.findById(chatId);
+          if (!chat) return;
+
+          return io.to(socket.id).emit('chatStarted', {
+            roomId,
+            chatId,
+            messages: chat.messages
+          });
+        }
+
+        
+        const now = Date.now();
+        const filteredWaiting = waitingUsers.filter(u => {
+          const pairKey = getPairKey(userStrId, u.userId);
+          if (recentUnmatches.has(pairKey)) {
+            const lastUnmatchTime = recentUnmatches.get(pairKey);
+            
+            if (now - lastUnmatchTime < UNMATCH_BLOCK_TIME) return false;
+          }
+          return true;
+        });
+
+        
+        const matchIndex = filteredWaiting.findIndex(u =>
           u.userId !== userStrId && Math.abs(u.age - user.age) <= 1
         );
 
         if (matchIndex !== -1) {
-          const matchedUser = waitingUsers.splice(matchIndex, 1)[0];
+          
+          const matchedUser = waitingUsers.find(u => u.userId === filteredWaiting[matchIndex].userId);
 
+          
+          waitingUsers = waitingUsers.filter(u => u.userId !== matchedUser.userId);
+
+          const matchedUserIdStr = matchedUser.userId;
           const roomId = `${socket.id}-${matchedUser.socketId}`;
+
           socket.join(roomId);
           io.to(matchedUser.socketId).socketsJoin(roomId);
 
           socketRoomMap.set(socket.id, roomId);
           socketRoomMap.set(matchedUser.socketId, roomId);
 
-          const matchedUserIdStr = matchedUser.userId.toString();
-
-         
           let chat = await Chat.findOne({
             participants: { $all: [userStrId, matchedUserIdStr] }
           });
 
-      
           if (!chat) {
-            chat = new Chat({
-              participants: [userStrId, matchedUserIdStr],
-              messages: []
-            });
+            chat = new Chat({ participants: [userStrId, matchedUserIdStr], messages: [] });
             await chat.save();
           }
 
-       
+          activeMatches.set(userStrId, { roomId, chatId: chat._id, partnerId: matchedUserIdStr });
+          activeMatches.set(matchedUserIdStr, { roomId, chatId: chat._id, partnerId: userStrId });
+
           io.to(roomId).emit('chatStarted', {
             roomId,
             chatId: chat._id,
@@ -60,7 +97,7 @@ module.exports = (io) => {
         }
 
       } catch (err) {
-        console.error('❌ Error in joinQueue:', err);
+        console.error('Error in joinQueue:', err);
       }
     });
 
@@ -97,10 +134,38 @@ module.exports = (io) => {
       });
     });
 
+    socket.on('unmatch', ({ userId }) => {
+      const match = activeMatches.get(userId);
+      if (!match) return;
+
+      const { roomId, partnerId } = match;
+
+      activeMatches.delete(userId);
+      activeMatches.delete(partnerId);
+
+      socketRoomMap.delete(socket.id);
+
+      
+      const pairKey = getPairKey(userId, partnerId);
+      recentUnmatches.set(pairKey, Date.now());
+
+      io.to(roomId).emit('unmatched');
+    });
+
     socket.on('disconnect', () => {
       waitingUsers = waitingUsers.filter(u => u.socketId !== socket.id);
       socketRoomMap.delete(socket.id);
       console.log('🔌 User disconnected:', socket.id);
     });
+
+    
+    setInterval(() => {
+      const now = Date.now();
+      for (const [pairKey, timestamp] of recentUnmatches.entries()) {
+        if (now - timestamp > UNMATCH_BLOCK_TIME) {
+          recentUnmatches.delete(pairKey);
+        }
+      }
+    }, 5 * 60 * 1000);
   });
 };

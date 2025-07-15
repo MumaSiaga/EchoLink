@@ -16,13 +16,19 @@ const userSchema = new mongoose.Schema({
   age: Number,
    profilePicture: {
     type: String,
-    default: '/images/profile.jpg'  // fallback image
+    default: '/images/profile.jpg'
   },
 
-  status: {
-    type: String,
-    default: ''
-  },
+ status: {
+  type: [
+    {
+      mediaType: { type: String, enum: ['image', 'video', 'text'], required: true },
+      mediaUrl: { type: String },     
+      createdAt: { type: Date, default: Date.now }
+    }
+  ],
+  default: []
+},
   bio: { type: String, default: '' },
   password: { type: String, default: null }, 
 
