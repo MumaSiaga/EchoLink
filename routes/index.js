@@ -67,7 +67,12 @@ const storage = multer.diskStorage({
     cb(null, Date.now() + '-' + safeName);
   }
 });
-const upload = multer({ storage });
+const upload = multer({
+  dest: 'uploads/',
+  limits: {
+    fileSize: 100 * 1024 * 1024, 
+  }
+});
 
 router.post('/profile/upload', ensureAuth, upload.single('profilePicture'), async (req, res) => {
   try {
