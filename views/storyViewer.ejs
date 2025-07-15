@@ -23,7 +23,7 @@
       <% if (story.mediaType === 'image') { %>
         <img src="<%= story.mediaUrl %>" alt="Story Image" />
       <% } else if (story.mediaType === 'video') { %>
-        <video src="<%= story.mediaUrl %>" autoplay muted controls playsinline></video>
+        <video src="<%= story.mediaUrl %>" preload="metadata" muted controls playsinline></video>
       <% } else if (story.mediaType === 'text') { %>
         <div class="text-story" style="background-color: <%= story.backgroundColor || '#4f6ef7' %>;">
           <p><%= story.textContent %></p>
@@ -63,22 +63,27 @@
   <% }); %>
 
 <script>
- const slides = document.querySelectorAll('.story-slide');
-  const bars = document.querySelectorAll('.progress-bar-fill');
-  let current = 0;
-  const imageDuration = 5000;
-  let timer;
+const slides = document.querySelectorAll('.story-slide');
+const bars = document.querySelectorAll('.progress-bar-fill');
+let current = 0;
+const imageDuration = 5000;
+let timer;
 
-  function showSlide(index) {
+const videoDurations = new Map();
+
+function showSlide(index) {
   if (timer) clearInterval(timer);
 
   slides.forEach((slide, i) => {
-    slide.style.display = 'none';
+
+    slide.style.opacity = '0';
+    slide.style.pointerEvents = 'none';
+
     const video = slide.querySelector('video');
     if (video) {
+    
       video.pause();
-      video.currentTime = 0;
-      video.muted = true; 
+ 
     }
     bars[i].style.width = '0%';
   });
@@ -90,72 +95,94 @@
 
   const currentSlide = slides[index];
   const currentBar = bars[index];
-  currentSlide.style.display = 'flex';
+
+  currentSlide.style.opacity = '1';
+  currentSlide.style.pointerEvents = 'auto';
 
   const video = currentSlide.querySelector('video');
 
   if (video) {
-    video.play().catch(() => {
-      
-    });
 
-    let duration = video.duration || 10; 
-
-    
-    timer = setInterval(() => {
-      if (video.paused) return; 
-
-      const progress = (video.currentTime / duration) * 100;
-      currentBar.style.width = progress + '%';
-
-      if (progress >= 100) {
-        clearInterval(timer);
-        current++;
-        showSlide(current);
+    if (!videoDurations.has(index)) {
+      if (video.readyState >= 1) {
+        videoDurations.set(index, video.duration);
+        startVideoPlayback(video, index);
+      } else {
+        video.onloadedmetadata = () => {
+          videoDurations.set(index, video.duration);
+          startVideoPlayback(video, index);
+        };
       }
-    }, 100);
-
-    
-    document.body.addEventListener('click', function unmuteHandler() {
-      if (video.muted) {
-        video.muted = false;
-        video.volume = 1;
-      }
-      document.body.removeEventListener('click', unmuteHandler);
-    });
-
-    video.onended = () => {
-      clearInterval(timer);
-      current++;
-      showSlide(current);
-    };
+    } else {
+      startVideoPlayback(video, index);
+    }
   } else {
-    
     animateBar(index, imageDuration);
   }
 }
 
-  function animateBar(index, duration) {
-    let width = 0;
-    const bar = bars[index];
-    timer = setInterval(() => {
-      width += 100 / (duration / 100);
-      bar.style.width = width + '%';
+function startVideoPlayback(video, index) {
+  const duration = videoDurations.get(index);
+  
+  video.play().catch(() => {
+   
+  });
 
-      if (width >= 100) {
-        clearInterval(timer);
-        current++;
-        showSlide(current);
-      }
-    }, 100);
+  if (timer) clearInterval(timer);
+
+  timer = setInterval(() => {
+    if (video.paused) return;
+
+    const progress = (video.currentTime / duration) * 100;
+    bars[index].style.width = progress + '%';
+
+    if (progress >= 100) {
+      clearInterval(timer);
+      current++;
+      showSlide(current);
+    }
+  }, 100);
+
+
+  function unmuteHandler() {
+    if (video.muted) {
+      video.muted = false;
+      video.volume = 1;
+    }
+    document.body.removeEventListener('click', unmuteHandler);
   }
+  document.body.removeEventListener('click', unmuteHandler);
+  document.body.addEventListener('click', unmuteHandler);
 
- 
-  showSlide(current);
+  video.onended = () => {
+    clearInterval(timer);
+    current++;
+    showSlide(current);
+  };
+}
 
-  
- document.body.addEventListener('click', (e) => {
-  
+function animateBar(index, duration) {
+  let width = 0;
+  const bar = bars[index];
+  if (timer) clearInterval(timer);
+
+  timer = setInterval(() => {
+    width += 100 / (duration / 100);
+    bar.style.width = width + '%';
+
+    if (width >= 100) {
+      clearInterval(timer);
+      current++;
+      showSlide(current);
+    }
+  }, 100);
+}
+
+
+showSlide(current);
+
+
+document.body.addEventListener('click', (e) => {
   if (e.target.closest('.bin-btn') || e.target.closest('video')) return;
 
   const x = e.clientX;
@@ -166,7 +193,7 @@
   const video = slides[current]?.querySelector('video');
   if (video) {
     video.pause();
-    video.currentTime = 0;
+  
   }
 
   if (x > screenWidth / 2) {
