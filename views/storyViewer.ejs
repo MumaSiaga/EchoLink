@@ -154,29 +154,29 @@
   showSlide(current);
 
   
-  document.body.addEventListener('click', (e) => {
-    if (e.target.closest('.bin-btn')) return;
+ document.body.addEventListener('click', (e) => {
+  
+  if (e.target.closest('.bin-btn') || e.target.closest('video')) return;
 
-    const x = e.clientX;
-    const screenWidth = window.innerWidth;
+  const x = e.clientX;
+  const screenWidth = window.innerWidth;
 
-    if (timer) clearInterval(timer);
+  if (timer) clearInterval(timer);
 
-   
-    const video = slides[current]?.querySelector('video');
-    if (video) {
-      video.pause();
-      video.currentTime = 0;
-    }
+  const video = slides[current]?.querySelector('video');
+  if (video) {
+    video.pause();
+    video.currentTime = 0;
+  }
 
-    if (x > screenWidth / 2) {
-      current++;
-    } else {
-      current = Math.max(0, current - 1);
-    }
+  if (x > screenWidth / 2) {
+    current++;
+  } else {
+    current = Math.max(0, current - 1);
+  }
 
-    showSlide(current);
-  });
+  showSlide(current);
+});
 </script>
 
 </body>
