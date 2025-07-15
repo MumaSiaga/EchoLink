@@ -67,10 +67,29 @@ const storage = multer.diskStorage({
     cb(null, Date.now() + '-' + safeName);
   }
 });
+const fileFilter = (req, file, cb) => {
+  const allowedMimeTypes = [
+    'image/jpeg',
+    'image/png',
+    'image/gif',
+    'video/mp4',
+    'video/webm',
+    'video/quicktime'
+  ];
+
+  if (allowedMimeTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Unsupported file type'), false);
+  }
+};
+
+
 const upload = multer({
-  dest: 'uploads/',
+  storage,
+  fileFilter,
   limits: {
-    fileSize: 100 * 1024 * 1024, 
+    fileSize: 100 * 1024 * 1024 
   }
 });
 
