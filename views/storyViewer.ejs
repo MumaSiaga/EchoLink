@@ -23,7 +23,7 @@
       <% if (story.mediaType === 'image') { %>
         <img src="<%= story.mediaUrl %>" alt="Story Image" />
       <% } else if (story.mediaType === 'video') { %>
-        <video src="<%= story.mediaUrl %>" autoplay controls playsinline></video>
+        <video src="<%= story.mediaUrl %>" autoplay muted controls playsinline></video>
       <% } else if (story.mediaType === 'text') { %>
         <div class="text-story" style="background-color: <%= story.backgroundColor || '#4f6ef7' %>;">
           <p><%= story.textContent %></p>
@@ -70,46 +70,70 @@
   let timer;
 
   function showSlide(index) {
-    if (timer) clearInterval(timer);
+  if (timer) clearInterval(timer);
 
-    slides.forEach((slide, i) => {
-      slide.style.display = 'none';
-      const video = slide.querySelector('video');
-      if (video) {
-        video.pause();
-        video.currentTime = 0;
-      }
-      bars[i].style.width = '0%';
+  slides.forEach((slide, i) => {
+    slide.style.display = 'none';
+    const video = slide.querySelector('video');
+    if (video) {
+      video.pause();
+      video.currentTime = 0;
+      video.muted = true; 
+    }
+    bars[i].style.width = '0%';
+  });
+
+  if (index >= slides.length) {
+    window.location.href = '/profile';
+    return;
+  }
+
+  const currentSlide = slides[index];
+  const currentBar = bars[index];
+  currentSlide.style.display = 'flex';
+
+  const video = currentSlide.querySelector('video');
+
+  if (video) {
+    video.play().catch(() => {
+      
     });
 
-    if (index >= slides.length) {
-      window.location.href = '/profile';
-      return;
-    }
+    let duration = video.duration || 10; 
 
-    const currentSlide = slides[index];
-    const currentBar = bars[index];
-    currentSlide.style.display = 'flex';
+    
+    timer = setInterval(() => {
+      if (video.paused) return; 
 
-    const video = currentSlide.querySelector('video');
+      const progress = (video.currentTime / duration) * 100;
+      currentBar.style.width = progress + '%';
 
-    if (video) {
-      
-      video.onloadedmetadata = () => {
-        video.play();
-        animateBar(index, video.duration * 1000);
+      if (progress >= 100) {
+        clearInterval(timer);
+        current++;
+        showSlide(current);
+      }
+    }, 100);
 
-       
-        video.onended = () => {
-          current++;
-          showSlide(current);
-        };
-      };
-    } else {
-     
-      animateBar(index, imageDuration);
-    }
+    
+    document.body.addEventListener('click', function unmuteHandler() {
+      if (video.muted) {
+        video.muted = false;
+        video.volume = 1;
+      }
+      document.body.removeEventListener('click', unmuteHandler);
+    });
+
+    video.onended = () => {
+      clearInterval(timer);
+      current++;
+      showSlide(current);
+    };
+  } else {
+    
+    animateBar(index, imageDuration);
   }
+}
 
   function animateBar(index, duration) {
     let width = 0;
