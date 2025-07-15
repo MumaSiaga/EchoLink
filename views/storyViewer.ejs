@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Your Story</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="/css/storyViewer.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+ 
+</head>
+<body>
+
+  <button class="close-btn" onclick="window.location.href='/profile'">×</button>
+
+  <div class="progress-bar-container">
+    <% stories.forEach((s, i) => { %>
+      <div class="progress-bar"><div class="progress-bar-fill" id="bar<%= i %>"></div></div>
+    <% }); %>
+  </div>
+
+  <% stories.forEach((story, i) => { %>
+    <div class="story-slide" id="slide<%= i %>">
+      <% if (story.mediaType === 'image') { %>
+        <img src="<%= story.mediaUrl %>" alt="Story Image" />
+      <% } else if (story.mediaType === 'video') { %>
+        <video src="<%= story.mediaUrl %>" autoplay muted playsinline></video>
+      <% } else if (story.mediaType === 'text') { %>
+        <div class="text-story" style="background-color: <%= story.backgroundColor || '#4f6ef7' %>;">
+          <p><%= story.textContent %></p>
+        </div>
+      <% } %>
+
+      <form method="POST" action="/stories/delete/<%= i %>" class="delete-form">
+        <button type="submit" class="bin-btn" title="Delete this story">
+          <i class="fa fa-trash"></i>
+        </button>
+      </form>
+
+      <div class="time-posted">
+        <% 
+          const now = new Date();
+          const created = new Date(story.createdAt);
+          const diffMs = now - created;
+          const diffSeconds = Math.floor(diffMs / 1000);
+          const diffMinutes = Math.floor(diffSeconds / 60);
+          const diffHours = Math.floor(diffMinutes / 60);
+          const diffDays = Math.floor(diffHours / 24);
+
+          let timeString = '';
+          if (diffSeconds < 60) {
+            timeString = `posted ${diffSeconds} sec ago`;
+          } else if (diffMinutes < 60) {
+            timeString = `posted ${diffMinutes} min ago`;
+          } else if (diffHours < 24) {
+            timeString = `posted ${diffHours} hr${diffHours > 1 ? 's' : ''} ago`;
+          } else {
+            timeString = `posted ${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+          }
+        %>
+        <%= timeString %>
+      </div>
+    </div>
+  <% }); %>
+
+<script>
+  const slides = document.querySelectorAll('.story-slide');
+  const bars = document.querySelectorAll('.progress-bar-fill');
+  let current = 0;
+  const duration = 5000;
+  let timer; // 👈 store the interval reference
+
+  function showSlide(index) {
+    if (timer) clearInterval(timer); // 🛑 stop previous animation
+
+    slides.forEach(slide => (slide.style.display = 'none'));
+    bars.forEach(bar => (bar.style.width = '0%'));
+
+    if (index >= slides.length) {
+      window.location.href = '/profile';
+      return;
+    }
+
+    slides[index].style.display = 'flex';
+    animateBar(index);
+  }
+
+  function animateBar(index) {
+    let width = 0;
+    timer = setInterval(() => {
+      width += 100 / (duration / 100);
+      bars[index].style.width = width + '%';
+
+      if (width >= 100) {
+        clearInterval(timer);
+        current++;
+        showSlide(current);
+      }
+    }, 100);
+  }
+
+  showSlide(current);
+
+document.body.addEventListener('click', (e) => {
+  if (e.target.closest('.bin-btn')) return;
+
+  const x = e.clientX;
+  const screenWidth = window.innerWidth;
+
+  if (x > screenWidth / 2) {
+   
+    current++;
+    showSlide(current);
+  } else {
+    
+    current = Math.max(0, current - 1);
+    showSlide(current);
+  }
+});
+
+</script>
+
+</body>
+</html>

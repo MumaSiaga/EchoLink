@@ -59,3 +59,58 @@ document.getElementById('cancelBioBtn').addEventListener('click', () => {
   document.getElementById('bioForm').style.display = 'none';
   document.getElementById('editBioBtn').style.display = 'inline-block';
 });
+
+function addStory() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*,video/*';
+  input.multiple = false;
+
+  input.onchange = async () => {
+    const file = input.files[0];
+    if (file) {
+      const formData = new FormData();
+      formData.append('story', file); 
+
+      try {
+        const res = await fetch('/stories/upload', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (!res.ok) throw new Error(await res.text());
+
+        location.reload();
+      } catch (err) {
+        console.error(err);
+        alert('Failed to upload story.');
+      }
+    }
+  };
+
+  input.click(); 
+}
+
+ const ageModal = document.getElementById('ageModal');
+  const editAgeBtn = document.getElementById('editAgeBtn');
+
+  editAgeBtn.addEventListener('click', () => {
+    ageModal.style.display = 'block';
+  });
+
+  function closeAgeModal() {
+    ageModal.style.display = 'none';
+  }
+
+ 
+  window.onclick = function(event) {
+    if (event.target == ageModal) {
+      closeAgeModal();
+    }
+  }
+
+    
+
+
+    
+  
