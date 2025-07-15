@@ -23,7 +23,7 @@
       <% if (story.mediaType === 'image') { %>
         <img src="<%= story.mediaUrl %>" alt="Story Image" />
       <% } else if (story.mediaType === 'video') { %>
-        <video src="<%= story.mediaUrl %>" autoplay muted playsinline></video>
+        <video src="<%= story.mediaUrl %>" autoplay muted controls playsinline></video>
       <% } else if (story.mediaType === 'text') { %>
         <div class="text-story" style="background-color: <%= story.backgroundColor || '#4f6ef7' %>;">
           <p><%= story.textContent %></p>
