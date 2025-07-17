@@ -10,8 +10,8 @@ body, html {
   background-color: #f4f6fc;
   color: #333;
   padding-top: 70px;
+   overflow-y: scroll;
 }
-
 .icon-bar {
   position: fixed;
   top: 0;
@@ -201,6 +201,7 @@ button:hover,
   align-items: center;
   justify-content: center;
 }
+
 
 @media (max-width: 768px) {
   .stories-container {

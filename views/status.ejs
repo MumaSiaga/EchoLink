@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Peer Status</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="/css/profile.css" />
+</head>
+<body>
+  <header>
+    <div class="icon-bar">
+      <a href="/chat"><i class="fa fa-home"></i></a>
+      <a href="/profile"><i class="fa fa-user"></i></a>
+      <a href="/status/<%= partnerId %>"><i class="fa fa-plus-circle" style="color:white;"></i></a>
+      <a href="/notifications"><i class="fa fa-bell" style="color:white;"></i></a>
+    </div>
+  </header>
+
+  <main>
+    <img
+      src="<%= profilePicture ||'images/profile.jpg' %>"
+      class="profile-picture"
+      style="cursor: default;"
+    />
+
+    <hr>
+
+    <p><strong>Bio:</strong> <%= bio || 'No bio available.' %></p>
+    <p><strong>Age:</strong> <%= age || 'N/A' %></p>
+
+    <div class="stories-container"  onclick="viewMyStoryFromStatus()">
+      <% if (stories.length === 0) { %>
+        <div class="story-card view-story">
+          <div class="no-story-text">No Active Story</div>
+          <div class="story-label">View Story</div>
+        </div>
+      <% } else { %>
+        <% stories.forEach(story => { %>
+          <div class="story-card view-story">
+            <% if (story.mediaType === 'image') { %>
+              <img src="<%= story.mediaUrl %>" alt="Story Image" />
+            <% } else if (story.mediaType === 'video') { %>
+              <video src="<%= story.mediaUrl %>" autoplay muted loop></video>
+            <% } else if (story.mediaType === 'text') { %>
+              <div class="text-story"><%= story.textContent %></div>
+            <% } %>
+            <div class="story-label"><%= new Date(story.createdAt).toLocaleString() %></div>
+          </div>
+        <% }); %>
+      <% } %>
+    </div>
+  </main>
+    <script>
+  window.hasStories = <%- JSON.stringify(user.status && user.status.some(s => new Date() - new Date(s.createdAt) < 86400000)) %>;
+  window.currentUserId = "<%= user._id %>";
+
+  const userId = "<%= user._id %>";
+  function viewMyStory() {
+    window.location.href = `/stories/view/${userId}`;
+  }
+  function viewMyStoryFromStatus() {
+  window.location.href = `/stories/view/${userId}?from=status`;
+}
+
+</script>
+
+  <script src="/js/profile.js"></script>
+</body>
+</html>

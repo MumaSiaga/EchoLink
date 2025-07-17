@@ -74,15 +74,14 @@ module.exports = (io) => {
           socketRoomMap.set(socket.id, roomId);
           socketRoomMap.set(matchedUser.socketId, roomId);
 
-          let chat = await Chat.findOne({
-            participants: { $all: [userStrId, matchedUserIdStr] }
-          });
+          let chat = await Chat.findOne({participants: { $all: [userStrId, matchedUserIdStr] }});
 
           if (!chat) {
-            chat = new Chat({ participants: [userStrId, matchedUserIdStr], messages: [] });
-            await chat.save();
+          chat = new Chat({ participants: [userStrId, matchedUserIdStr], messages: [] });
+          await chat.save();
+          } else {
+          await Chat.findByIdAndUpdate(chat._id, { isClosed: false });
           }
-
           activeMatches.set(userStrId, { roomId, chatId: chat._id, partnerId: matchedUserIdStr });
           activeMatches.set(matchedUserIdStr, { roomId, chatId: chat._id, partnerId: userStrId });
 
@@ -134,23 +133,33 @@ module.exports = (io) => {
       });
     });
 
-    socket.on('unmatch', ({ userId }) => {
-      const match = activeMatches.get(userId);
-      if (!match) return;
+   socket.on('unmatch', async ({ userId }) => {
+  try {
+    const match = activeMatches.get(userId);
+    if (!match) return;
 
-      const { roomId, partnerId } = match;
+    const { roomId, partnerId, chatId } = match;
 
-      activeMatches.delete(userId);
-      activeMatches.delete(partnerId);
+    
+    activeMatches.delete(userId);
+    activeMatches.delete(partnerId);
 
-      socketRoomMap.delete(socket.id);
+    
+    socketRoomMap.delete(socket.id);
 
-      
-      const pairKey = getPairKey(userId, partnerId);
-      recentUnmatches.set(pairKey, Date.now());
+    
+    const pairKey = getPairKey(userId, partnerId);
+    recentUnmatches.set(pairKey, Date.now());
 
-      io.to(roomId).emit('unmatched');
-    });
+    
+    await Chat.findByIdAndUpdate(chatId, { isClosed: true });
+
+   
+    io.to(roomId).emit('unmatched');
+  } catch (err) {
+    console.error('Error in unmatch:', err);
+  }
+});
 
     socket.on('disconnect', () => {
       waitingUsers = waitingUsers.filter(u => u.socketId !== socket.id);

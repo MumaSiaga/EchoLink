@@ -34,7 +34,7 @@ window.backToOptions = function () {
   modalButtons.style.display = 'block';
 };
 
-  // Auto-submit form when image is selected
+
   if (fileInput) {
     fileInput.addEventListener('change', function () {
       if (uploadForm) {
@@ -43,7 +43,7 @@ window.backToOptions = function () {
     });
   }
 
-  // Close modal if clicked outside modal content
+ 
   window.addEventListener('click', function (event) {
     if (event.target === modal) {
       closeModal();

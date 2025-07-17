@@ -30,11 +30,15 @@
         </div>
       <% } %>
 
+      <% if (showDelete) { %>
       <form method="POST" action="/stories/delete/<%= i %>" class="delete-form">
+        
         <button type="submit" class="bin-btn" title="Delete this story">
           <i class="fa fa-trash"></i>
         </button>
       </form>
+       <% } %>
+      
 
       <div class="time-posted">
         <% 

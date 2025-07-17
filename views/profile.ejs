@@ -12,7 +12,7 @@
     <div class="icon-bar">
       <a href="/chat"><i class="fa fa-home"></i></a>
       <a href="/profile"><i class="fa fa-user"></i></a>
-      <a href="/status"><i class="fa fa-plus-circle" style="color:white;"></i></a>
+      <a href="/status/<%= partnerId%>"><i class="fa fa-plus-circle" style="color:white;"></i></a>
       <a href="/notifications"><i class="fa fa-bell" style="color:white;"></i></a>
     </div>
   </header>
@@ -20,7 +20,7 @@
   <main>
 
   <img
-  src="<%= user.profilePicture || '/images/default-profile.png' %>"
+  src="<%= user.profilePicture||'images/profile.jpg' %>"
   class="profile-picture"
   id="profilePic"
   alt="Profile Picture"
@@ -73,7 +73,7 @@
     <div class="story-label">Add Story</div>
   </div>
 
-  <div class="story-card view-story" onclick="viewMyStory()">
+  <div class="story-card view-story" onclick="viewMyStoryFromProfile()">
     <% 
       let activeStories = (user.status || []).filter(s => (new Date() - new Date(s.createdAt)) < 24 * 60 * 60 * 1000);
       let storyToShow = activeStories.length > 0 ? activeStories[activeStories.length -1] : null;
@@ -118,7 +118,9 @@
   function viewMyStory() {
     window.location.href = `/stories/view/${userId}`;
   }
-
+function viewMyStoryFromProfile() {
+  window.location.href = `/stories/view/${userId}?from=profile`;
+}
 </script>
 
   <script src="/js/profile.js"></script>

@@ -4,6 +4,7 @@ const express = require('express');
 const router = express.Router();
 const { ensureAuth, redirectIfLoggedIn } = require('../middlewares/authMiddleware');
 const User = require('../models/User');
+const Chat = require('../models/Chat');
 
 router.get('/', redirectIfLoggedIn, (req, res) => {
   res.render('landingpage'); 
@@ -42,17 +43,30 @@ router.post('/setup', ensureAuth, async (req, res) => {
 
 
 
-router.get('/chat', ensureAuth, (req, res) => {
+router.get('/chat', ensureAuth, async (req, res) => {
   const user = req.user || req.session.user;
+   const chat = await Chat.findOne({ participants: user._id,isClosed: false});
+    const userId = user._id;
+    let partnerId = null;
+    if (chat) {
+      partnerId = chat.participants.find(p => !p.equals(userId));
+    }
   console.log('User username:', user.username);
-  res.render('chat', { user: req.user || req.session.user });
+  res.render('chat', { user: req.user || req.session.user, partnerId: partnerId ? partnerId.toString() : null });
 });
 router.get('/profile', ensureAuth, async (req, res) => {
   const user = req.user || req.session.user;
 
   try {
     const fullUser = await User.findById(user._id).lean();
-    res.render('profile', { user: fullUser });
+      const chat = await Chat.findOne({ participants: user._id,isClosed: false});
+    const userId = user._id;
+    let partnerId = null;
+    if (chat) {
+      partnerId = chat.participants.find(p => !p.equals(userId));
+    }
+  res.render('profile', { user: fullUser , partnerId: partnerId ? partnerId.toString() : null });
+ 
   } catch (err) {
     console.error('Error fetching profile:', err);
     res.status(500).send('Error loading profile');
@@ -180,12 +194,18 @@ router.get('/stories/view/:userId', ensureAuth, async (req, res) => {
       return (now - new Date(story.createdAt)) < 24 * 60 * 60 * 1000;
     });
 
-    res.render('storyViewer', { stories: recentStories });
+    const showDelete = req.query.from === 'profile';
+
+    res.render('storyViewer', {
+      stories: recentStories,
+      showDelete
+    });
   } catch (err) {
     console.error('Error loading stories:', err);
     res.status(500).send('Failed to load stories');
   }
 });
+
 router.post('/stories/delete/:index', ensureAuth, async (req, res) => {
   const user = await User.findById(req.user._id);
   const index = parseInt(req.params.index);
@@ -197,6 +217,46 @@ router.post('/stories/delete/:index', ensureAuth, async (req, res) => {
   user.status.splice(index, 1); 
   await user.save();
   res.redirect('/stories/view/' + user._id);
+});
+router.get('/status/:userId', async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const user = await User.findById(userId).lean();
+
+    if (!user) return res.status(404).send('User not found');
+
+    const now = Date.now();
+    const activeStories = (user.status || []).filter(s => (now - new Date(s.createdAt)) < 24 * 60 * 60 * 1000);
+
+    const data = {
+      stories: activeStories
+    };
+
+    if (user.ProfileStatus === 'Public') {
+      data.bio = user.bio || '';
+      data.profilePicture = user.profilePicture || '/images/default-profile.png';
+      data.age = user.age || 'N/A';
+      data.user=user;
+      data.partnerId = userId;
+    }
+    else{
+      data.bio = 'This user has a private profile.';
+      data.profilePicture = '/images/profile.jpg';
+      data.age = user.age || 'N/A';
+      data.user=user;
+      data.partnerId = userId;
+
+    }
+
+    res.render('status', data);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Server error');
+  }
+});
+router.get('/status', (req, res) => {
+  res.status(400).render('statusError', { error: 'Missing user ID.' });
 });
 
 
