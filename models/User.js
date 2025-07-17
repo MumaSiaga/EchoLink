@@ -18,7 +18,11 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: '/images/profile.jpg'
   },
-
+ ProfileStatus: {
+    type: String,
+    enum: ['Public', 'Private'],
+    default: 'Private'},
+    
  status: {
   type: [
     {
