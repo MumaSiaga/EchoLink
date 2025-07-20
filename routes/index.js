@@ -258,6 +258,21 @@ router.get('/status/:userId', async (req, res) => {
 router.get('/status', (req, res) => {
   res.status(400).render('statusError', { error: 'Missing user ID.' });
 });
+router.post("/profile/visibility", ensureAuth, async (req, res) => {
+  const userId = req.session.userId || req.user?._id; 
+  try {
+    const isPublic = req.body.isPublic;
 
+ 
+    const status = isPublic ? "Public" : "Private";
+
+    await User.findByIdAndUpdate(userId, { ProfileStatus: status });
+
+    res.json({ success: true, message: `Profile set to ${status.toLowerCase()}` });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
 
 module.exports = router;
