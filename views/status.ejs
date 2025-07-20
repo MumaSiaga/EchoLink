@@ -35,21 +35,22 @@
           <div class="no-story-text">No Active Story</div>
           <div class="story-label">View Story</div>
         </div>
-      <% } else { %>
-        <% stories.forEach(story => { %>
-          <div class="story-card view-story">
-            <% if (story.mediaType === 'image') { %>
-              <img src="<%= story.mediaUrl %>" alt="Story Image" />
-            <% } else if (story.mediaType === 'video') { %>
-              <video src="<%= story.mediaUrl %>" autoplay muted loop></video>
-            <% } else if (story.mediaType === 'text') { %>
-              <div class="text-story"><%= story.textContent %></div>
-            <% } %>
-            <div class="story-label"><%= new Date(story.createdAt).toLocaleString() %></div>
-          </div>
-        <% }); %>
+   <% } else { %>
+  <% const latestStory = stories[stories.length - 1]; %>
+  <% if (latestStory) { %>
+    <div class="story-card view-story">
+      <% if (latestStory.mediaType === 'image') { %>
+        <img src="<%= latestStory.mediaUrl %>" alt="Story Image" />
+      <% } else if (latestStory.mediaType === 'video') { %>
+        <video src="<%= latestStory.mediaUrl %>" autoplay muted loop></video>
+      <% } else if (latestStory.mediaType === 'text') { %>
+        <div class="text-story"><%= latestStory.textContent %></div>
       <% } %>
+      <div class="story-label"><%= new Date(latestStory.createdAt).toLocaleString() %></div>
     </div>
+  <% } %>
+<% } %>
+
   </main>
     <script>
   window.hasStories = <%- JSON.stringify(user.status && user.status.some(s => new Date() - new Date(s.createdAt) < 86400000)) %>;
