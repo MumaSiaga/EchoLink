@@ -9,11 +9,16 @@ cloudinary.config({
 
 const storage = new CloudinaryStorage({
   cloudinary,
-  params: {
-    folder: 'echolink_uploads',
-    allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'mp4'],
-    transformation: [{ width: 500, height: 500, crop: "limit" }],
-  },
+  params: async (req, file) => {
+    const isVideo = file.mimetype.startsWith('video/');
+    return {
+      folder: 'echolink_uploads',
+      resource_type: isVideo ? 'video' : 'image',
+      allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'mp4', 'mov', 'webm', 'avi', 'flv', 'mkv'],
+      transformation: isVideo ? [{ duration: 30 }] : undefined
+    };
+  }
 });
+
 
 module.exports = { cloudinary, storage };

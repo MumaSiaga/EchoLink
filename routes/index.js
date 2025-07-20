@@ -6,7 +6,12 @@ const { ensureAuth, redirectIfLoggedIn } = require('../middlewares/authMiddlewar
 const User = require('../models/User');
 const Chat = require('../models/Chat');
 const { storage } = require('../config/cloudinary');
-const upload = multer({ storage });
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: 100 * 1024 * 1024 
+  }
+});
 
 router.get('/', redirectIfLoggedIn, (req, res) => {
   res.render('landingpage'); 
@@ -132,11 +137,11 @@ router.post('/stories/upload', ensureAuth, upload.single('story'), async (req, r
 
     const ext = path.extname(file.originalname).toLowerCase();
     let mediaType = 'image';
-    if (['.mp4', '.mov', '.webm'].includes(ext)) mediaType = 'video';
+    if (['.mp4', '.mov', '.webm', '.avi', '.flv', '.mkv'].includes(ext)) mediaType = 'video';
 
     const newStory = {
       mediaType,
-      mediaUrl: file.path, // Cloudinary hosted URL
+      mediaUrl: file.path, 
       createdAt: new Date()
     };
 
