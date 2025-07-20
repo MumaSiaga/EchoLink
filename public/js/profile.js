@@ -4,14 +4,14 @@ document.addEventListener("DOMContentLoaded", function () {
   const fileInput = document.getElementById('profilePictureInput');
   const uploadForm = document.getElementById('uploadForm');
 
-  // Show modal when profile picture is clicked
+
   if (profilePic) {
     profilePic.addEventListener('click', () => {
       modal.style.display = 'block';
     });
   }
 
-  // Close the modal
+ 
   window.closeModal = function () {
     modal.style.display = 'none';
   };
@@ -109,7 +109,31 @@ function addStory() {
     }
   }
 
-    
+  document.addEventListener("DOMContentLoaded", function () {
+  const toggle = document.getElementById("visibilityToggle");
+
+  toggle.addEventListener("change", function () {
+    fetch("/profile/visibility", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ isPublic: this.checked })
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          console.log("Visibility updated:", data.message);
+        } else {
+          console.error("Failed to update visibility");
+        }
+      })
+      .catch(err => {
+        console.error("Request error:", err);
+      });
+  });
+});
+
 
 
     

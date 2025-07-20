@@ -16,10 +16,16 @@
       <a href="/notifications"><i class="fa fa-bell" style="color:white;"></i></a>
     </div>
   </header>
-  
-  <main>
+    <div class="top-right-switch">
+      <span class="switch-label">Public</span>
+    <label class="switch">
+      <input type="checkbox" id="visibilityToggle">
+      <span class="slider round"></span>
+    </label>
+    </div>
 
-  <img
+  <main>
+    <img
   src="<%= user.profilePicture||'images/profile.jpg' %>"
   class="profile-picture"
   id="profilePic"
