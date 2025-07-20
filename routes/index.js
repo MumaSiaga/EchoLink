@@ -5,6 +5,8 @@ const router = express.Router();
 const { ensureAuth, redirectIfLoggedIn } = require('../middlewares/authMiddleware');
 const User = require('../models/User');
 const Chat = require('../models/Chat');
+const { storage } = require('../config/cloudinary');
+const upload = multer({ storage });
 
 router.get('/', redirectIfLoggedIn, (req, res) => {
   res.render('landingpage'); 
@@ -72,44 +74,13 @@ router.get('/profile', ensureAuth, async (req, res) => {
     res.status(500).send('Error loading profile');
   }
 });
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'public/uploads/');
-  },
-  filename: (req, file, cb) => {
-    const safeName = file.originalname.replace(/\s+/g, '-');
-    cb(null, Date.now() + '-' + safeName);
-  }
-});
-const fileFilter = (req, file, cb) => {
-  const allowedMimeTypes = [
-    'image/jpeg',
-    'image/png',
-    'image/gif',
-    'video/mp4',
-    'video/webm',
-    'video/quicktime'
-  ];
-
-  if (allowedMimeTypes.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(new Error('Unsupported file type'), false);
-  }
-};
 
 
-const upload = multer({
-  storage,
-  fileFilter,
-  limits: {
-    fileSize: 100 * 1024 * 1024 
-  }
-});
 
 router.post('/profile/upload', ensureAuth, upload.single('profilePicture'), async (req, res) => {
   try {
-    const imagePath = '/uploads/' + req.file.filename;
+    const imagePath =req.file.path;
+
 
     await User.findByIdAndUpdate(req.user._id, {
       profilePicture: imagePath
@@ -165,11 +136,10 @@ router.post('/stories/upload', ensureAuth, upload.single('story'), async (req, r
 
     const newStory = {
       mediaType,
-      mediaUrl: '/uploads/' + file.filename,
+      mediaUrl: file.path, // Cloudinary hosted URL
       createdAt: new Date()
     };
 
-   
     await User.findByIdAndUpdate(userId, { $push: { status: newStory } });
 
     res.redirect('/profile');
@@ -178,11 +148,6 @@ router.post('/stories/upload', ensureAuth, upload.single('story'), async (req, r
     res.status(500).send('Upload failed');
   }
 });
-
-
-
-
-
 
 router.get('/stories/view/:userId', ensureAuth, async (req, res) => {
   try {
