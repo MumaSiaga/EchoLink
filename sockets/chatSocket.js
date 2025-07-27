@@ -90,11 +90,12 @@ module.exports = (io) => {
             chatId: chat._id,
             messages: chat.messages
           });
+          io.to(roomId).emit('refreshPage');
 
         } else {
           waitingUsers.push({ socketId: socket.id, userId: userStrId, age: user.age });
         }
-
+        
       } catch (err) {
         console.error('Error in joinQueue:', err);
       }
@@ -156,10 +157,12 @@ module.exports = (io) => {
 
    
     io.to(roomId).emit('unmatched');
+    io.to(roomId).emit('refreshPage');
   } catch (err) {
     console.error('Error in unmatch:', err);
   }
 });
+
 
     socket.on('disconnect', () => {
       waitingUsers = waitingUsers.filter(u => u.socketId !== socket.id);

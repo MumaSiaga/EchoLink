@@ -6,10 +6,10 @@ document.addEventListener('DOMContentLoaded', () => {
   let roomId = null;
   let chatId = null;
 
-  // Join queue immediately
+ 
   socket.emit('joinQueue', { userId });
 
-  // Handle chat start
+
   socket.on('chatStarted', ({ roomId: r, chatId: c, messages = [] }) => {
     roomId = r;
     chatId = c;
@@ -25,12 +25,11 @@ document.addEventListener('DOMContentLoaded', () => {
     chatBox.scrollTop = chatBox.scrollHeight;
   });
 
-  // Handle new messages
   socket.on('receiveMessage', ({ senderId, message, timestamp, senderName }) => {
     appendMessage(senderId, message, timestamp, senderName);
   });
 
-  // Typing indicator
+  
   socket.on('typingNotification', ({ senderId, isTyping }) => {
     if (senderId !== userId) {
       const status = document.getElementById('status');
@@ -38,7 +37,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Replace "Peer" with revealed name
   socket.on('userRevealedName', ({ userId: revealedId, username: revealedName }) => {
     const allMessages = document.querySelectorAll('.message');
     allMessages.forEach(msg => {
@@ -48,16 +46,18 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   });
-
-  // Handle unmatch
+socket.on('refreshPage', () => {
+  window.location.reload();
+});
+  
   socket.on('unmatched', () => {
     alert('You have been unmatched.');
     document.getElementById('chat-box').innerHTML = '';
-    document.getElementById('status').textContent = 'Searching for a match...';
+    document.getElementById('status').textContent = 'Looking for a match...';
     socket.emit('joinQueue', { userId });
   });
 
-  // Handle message sending
+ 
   const form = document.getElementById('chat-form');
   form.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
     input.value = '';
   });
 
-  // Typing event
+  
   const input = document.getElementById('msg');
   input.addEventListener('input', () => {
     if (!roomId) return;
