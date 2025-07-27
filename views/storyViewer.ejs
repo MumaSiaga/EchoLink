@@ -10,7 +10,9 @@
 </head>
 <body>
 
-  <button class="close-btn" onclick="window.location.href='/profile'">×</button>
+<button class="close-btn" onclick="window.location.href='<%= showDelete ? "/profile" : ("/status/" + userID) %>'">×</button>
+
+
 
   <div class="progress-bar-container">
     <% stories.forEach((s, i) => { %>
@@ -91,11 +93,11 @@ function showSlide(index) {
     }
     bars[i].style.width = '0%';
   });
-
   if (index >= slides.length) {
-    window.location.href = '/profile';
-    return;
-  }
+  window.location.href = '<%= showDelete ? "/profile" : ("/status/" + userID) %>';
+  return;
+}
+
 
   const currentSlide = slides[index];
   const currentBar = bars[index];

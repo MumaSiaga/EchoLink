@@ -10,7 +10,7 @@ passport.use(
       callbackURL: 'https://echolink-mgt4.onrender.com/auth/google/callback'
     },
     async (accessToken, refreshToken, profile, done) => {
-      console.log('Google profile:', JSON.stringify(profile, null, 2));
+     
       try {
         let user = await User.findOne({ googleId: profile.id });
         

@@ -167,6 +167,7 @@ router.get('/stories/view/:userId', ensureAuth, async (req, res) => {
     const showDelete = req.query.from === 'profile';
 
     res.render('storyViewer', {
+      userID: user._id,
       stories: recentStories,
       showDelete
     });
