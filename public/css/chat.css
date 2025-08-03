@@ -93,7 +93,6 @@ body, html {
   align-items: center;
   justify-content: space-between;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid #ccc;
   margin-bottom: 1rem;
   gap: 1rem;
   flex-wrap: wrap;
@@ -138,6 +137,7 @@ body, html {
   margin-bottom: 1rem;
   display: flex;
   flex-direction: column;
+  background-image: url('/images/chatbackground.jpg');
 }
 
 
@@ -202,7 +202,7 @@ body, html {
 .chat-form button {
   padding: 0 1.25rem;
   font-size: 1.5rem;
-  background-color: #4f6ef7;
+  background-color: #333;
   color: #fff;
   border: 1px solid #4f6ef7;
   border-radius: 0 8px 8px 0;
@@ -211,7 +211,7 @@ body, html {
 }
 
 .chat-form button:hover {
-  background-color: #3e59d6;
+  background-color: #333;
 }
 
 

@@ -8,7 +8,7 @@
 </head>
 <body>
     <section>
-        <form action="POST">
+        <form id="login-form">
             <h1>Login</h1>
             
                 
@@ -24,6 +24,25 @@
   <span>Continue with Google</span>
 </button>
     </section>
-    
+    <script>
+         document.getElementById('login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+
+    const res = await fetch('/Admin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+
+    if (res.ok) {
+      window.location.href = '/Admin';
+    } else {
+      const err = await res.text();
+      alert(err || 'Login failed');
+    }
+  });
+    </script>
 </body>
 </html>

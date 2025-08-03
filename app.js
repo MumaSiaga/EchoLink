@@ -30,7 +30,7 @@ app.use(express.json());
 
 app.use('/', require('./routes/index'));
 app.use('/auth', require('./routes/authRoutes'));
-app.use('/chat', require('./routes/chatRoutes'));
+
 app.use(express.static('public'));
 const PORT = process.env.PORT || 3000;
 http.listen(PORT, () => console.log(`Server running on port ${PORT}`));

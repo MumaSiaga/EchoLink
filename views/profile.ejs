@@ -25,13 +25,18 @@
 </div>
 
   <main>
-    <img
+ 
+          <img
   src="<%= user.profilePicture||'images/profile.jpg' %>"
   class="profile-picture"
   id="profilePic"
   alt="Profile Picture"
-  style="cursor: pointer;"
+  style="cursor: pointer;
+  background-color: rgb(3, 26, 26);"
+  
 />
+
+
 
 <div id="profileModal" class="modal">
   <div class="modal-content" id="modalContent">
@@ -61,7 +66,6 @@
     onchange="document.getElementById('uploadForm').submit()"
   />
 </form>
-<hr>
   <p><span id="bioText"><%= user.bio || "" %></span></p>
 <button id="editBioBtn">Add / Edit Bio</button>
 

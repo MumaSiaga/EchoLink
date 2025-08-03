@@ -35,7 +35,7 @@ const userSchema = new mongoose.Schema({
 },
   bio: { type: String, default: '' },
   password: { type: String, default: null }, 
-
+  verified: { type: Boolean, default: false },
   createdAt: {
     type: Date,
     default: Date.now
