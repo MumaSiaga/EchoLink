@@ -32,13 +32,13 @@
     <p>Remember to keep the conversation respectful and friendly.</p>
     <p>Enjoy your chat experience!</p>
     <!-- <button onclick="window.location.href='auth/logout'">Logout</button> -->
+     <button id="unmatch-btn" class="unmatch-btn" aria-label="Unmatch from current chat">Unmatch</button>
   </section>
 
   <main class="chat-wrapper" role="main">
     <header class="chat-header">
-      <h1>Chat</h1>
-      <button id="unmatch-btn" class="unmatch-btn" aria-label="Unmatch from current chat">Unmatch</button>
-      <p id="status" aria-live="polite" aria-atomic="true">Looking for a match...</p>
+      
+      <h1 id="status" aria-live="polite" aria-atomic="true">Looking for a match...</h1>
     </header>
 
     <section id="chat-box" class="chat-box" aria-live="polite" tabindex="0"></section>
@@ -53,7 +53,7 @@
         aria-required="true"
         aria-describedby="sendButtonLabel"
       />
-      <button type="submit" aria-label="Send message" id="sendButtonLabel">➤</button>
+      <button type="submit" aria-label="Send message" id="sendButtonLabel"><i class="fa fa-arrow-right" style="color:white;"></i></button>
     </form>
   </main>
 </div>
