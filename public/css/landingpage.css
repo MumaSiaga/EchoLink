@@ -44,9 +44,6 @@ nav {
   transition: background-color 0.3s ease;
 }
 
-.nav-end .Join:hover {
-  background-color: #0056b3;
-}
 nav ul li a {
   text-decoration: none;
   color: black;
@@ -194,9 +191,7 @@ button.signUp {
   transition: background-color 0.3s ease;
 }
 
-button.signUp:hover {
-  background-color: #0056b3;
-}
+
 footer {
   padding: 30px 20px;
   text-align: center;
