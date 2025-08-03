@@ -39,7 +39,7 @@ router.get('/status/:userId', async (req, res) => {
       data.stories = [];
       data.bio = 'This user has a private profile.';
       data.profilePicture = '/images/profile.jpg';
-      data.age = user.age || 'N/A';
+      data.age ='hidden';
       data.user=user;
       data.partnerId = userId;
 
