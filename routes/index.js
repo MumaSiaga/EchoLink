@@ -3,6 +3,8 @@ const path = require('path');
 const express = require('express');
 const router = express.Router();
 const { ensureAuth, redirectIfLoggedIn } = require('../middlewares/authMiddleware');
+const User = require('../models/User');
+const Chat = require('../models/Chat');
 
 const { storage } = require('../config/cloudinary');
 const upload = multer({
