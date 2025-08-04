@@ -16,6 +16,7 @@
       <a href="/notifications"><i class="fa fa-bell" style="color:white;"></i></a>
     </div>
   </header>
+  <h1>PROFILE</h1>
    <div class="top-right-switch">
   <span class="switch-label">Public</span>
   <label class="switch">
@@ -25,8 +26,9 @@
 </div>
 
   <main>
- 
-          <img
+ <div class="big-section">
+  <div class="left-section">
+     <img
   src="<%= user.profilePicture||'images/profile.jpg' %>"
   class="profile-picture"
   id="profilePic"
@@ -35,10 +37,9 @@
   background-color: rgb(3, 26, 26);"
   
 />
-
-
-
-<div id="profileModal" class="modal">
+  </div>
+  <div class="right-section">
+    <div id="profileModal" class="modal">
   <div class="modal-content" id="modalContent">
     <div class="modal-buttons" id="modalButtons">
       <button onclick="viewPhoto()">View Profile Photo</button>
@@ -77,26 +78,7 @@
   <button type="button" id="cancelBioBtn">Cancel</button>
 </form>
 
-<div class="stories-container">
-  <div class="story-card add-story" onclick="addStory()">
-    <div class="plus-icon">+</div>
-    <div class="story-label">Add Story</div>
-  </div>
 
-  <div class="story-card view-story" onclick="viewMyStoryFromProfile()">
-    <% 
-      let activeStories = (user.status || []).filter(s => (new Date() - new Date(s.createdAt)) < 24 * 60 * 60 * 1000);
-      let storyToShow = activeStories.length > 0 ? activeStories[activeStories.length -1] : null;
-    %>
-
-    <% if (storyToShow) { %>
-      <div class="story-label">View My Story</div>
-    <% } else { %>
-      <div class="no-story-text">No Active Story</div>
-      <div class="story-label">View My Story</div>
-    <% } %>
-  </div>
-</div>
 
   <p>Age: <span id="ageDisplay"><%= user.age || "N/A" %></span></p>
 <button id="editAgeBtn">Edit Age</button>
@@ -116,6 +98,50 @@
     <p>Email: <%= user.email %></p>
     <p>Joined on: <%= user.createdAt.toLocaleDateString() %></p>
     <button onclick="window.location.href='auth/logout'" class="logout-button">Logout</button>
+ 
+ </div>
+ <div class="story section">
+
+ </div>
+  </div>
+  <h1>My Stories</h1>
+  
+
+
+ <div class="stories-container" onclick="viewMyStoryFromProfile()">
+    <div class="story-card add-story" onclick="addStory()">
+    <div class="plus-icon">+</div>
+    <div class="story-label">Add Story</div>
+  </div>
+  <% if (!latestStory) { %>
+    <div class="story-card view-story">
+      <div class="no-story-text">No Active Story</div>
+      <div class="story-label">View Story</div>
+    </div>
+  <% } else { %>
+    <div class="story-card view-story">
+      <% if (latestStory.mediaType === 'image') { %>
+        <img src="<%= latestStory.mediaUrl %>" alt="Story Image" />
+      <% } else if (latestStory.mediaType === 'video') { %>
+        <video src="<%= latestStory.mediaUrl %>" autoplay muted loop></video>
+      <% } else if (latestStory.mediaType === 'text') { %>
+        <div class="text-story"><%= latestStory.textContent %></div>
+      <% } %>
+      <div class="story-label"></div>
+    </div>
+  <% } %>
+</div>
+
+ 
+ 
+</div>
+    
+ 
+
+
+
+
+  
   </main>
 
 
