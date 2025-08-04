@@ -113,17 +113,17 @@ body, html {
 .bin-btn {
    position: fixed;
   top: 15px;
-  right: 40px;
+  right: 45px;
   font-size: 28px;
   background: transparent;
   border: none;
-  color: red;
+  color: white;
   cursor: pointer;
   z-index: 10;
 }
 
 .bin-btn:hover {
-  color: #cc0000;
+  color: #ff0000;
 }
 
 @media (max-width: 768px) {
@@ -135,7 +135,7 @@ body, html {
     right: 10px;
   }
   .bin-btn {
-    right: 25px;
+    right: 27px;
   }
 
   .progress-bar-container {
