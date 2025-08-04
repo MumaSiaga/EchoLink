@@ -7,7 +7,7 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: 'https://echolink-mgt4/auth/google/callback'
+      callbackURL: 'https://echolink-mgt4.onrender.com/auth/google/callback'
     },
     async (accessToken, refreshToken, profile, done) => {
      
