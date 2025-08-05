@@ -59,8 +59,8 @@ document.getElementById('cancelBioBtn').addEventListener('click', () => {
   document.getElementById('bioForm').style.display = 'none';
   document.getElementById('editBioBtn').style.display = 'inline-block';
 });
-
-function addStory() {
+function addStory(event) {
+  event.stopPropagation();
   const input = document.createElement('input');
   input.type = 'file';
   input.accept = 'image/*,video/*';
