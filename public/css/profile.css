@@ -329,9 +329,8 @@ button:hover,
   }
 
   .profile-picture {
-    width: 100%;
-    max-width: 300px;
-    height: auto;
+ width: 400px;
+    height: 400px;
     margin: 0 auto;
   }
 
