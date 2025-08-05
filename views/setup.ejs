@@ -13,5 +13,45 @@
     <input type="number" name="age" placeholder="Enter your age" required>
     <button type="submit">Continue to Chat</button>
   </form>
+<p id="decrypt-paragraph">
+  EchoLink is a platform built to help you connect with people who share your interests and values. By providing your correct age, we ensure you're matched with others close to your age range (±1 year), making your interactions more relatable, comfortable, and safe. Verifying your account not only protects your identity but also helps us maintain a secure and trustworthy community. It also allows us to personalize your experience, improve your matches, and foster meaningful conversations tailored to your preferences. At EchoLink, your safety and genuine connections come first.
+</p>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const originalText = document.getElementById("decrypt-paragraph").textContent;
+    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()";
+    const iterations = 15;
+    const speed = 240;
+
+    const paragraph = document.getElementById("decrypt-paragraph");
+    let frame = 0;
+
+    const scramble = () => {
+      const scrambled = originalText
+        .split("")
+        .map((char, i) => {
+          if (char === " " || frame > iterations) return char;
+          if (i < (frame * originalText.length) / iterations) {
+            return char;
+          }
+          return characters[Math.floor(Math.random() * characters.length)];
+        })
+        .join("");
+
+      paragraph.textContent = scrambled;
+
+      frame++;
+      if (frame <= iterations) {
+        setTimeout(scramble, speed);
+      } else {
+        paragraph.textContent = originalText;
+      }
+    };
+
+    scramble(); 
+  });
+</script>
+
+
 </body>
 </html>
