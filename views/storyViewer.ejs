@@ -33,7 +33,7 @@
       <% } %>
 
       <% if (showDelete) { %>
-      <form method="POST" action="/stories/delete/<%= i %>" class="delete-form">
+      <form method="POST" action="/stories/delete/<%= story._id %>" class="delete-form">
         
         <button type="submit" class="bin-btn" title="Delete this story">
           <i class="fa fa-trash"></i>

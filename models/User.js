@@ -27,6 +27,7 @@ const userSchema = new mongoose.Schema({
   type: [
     {
       mediaType: { type: String, enum: ['image', 'video', 'text'], required: true },
+      public_id: { type: String, default: null },
       mediaUrl: { type: String },     
       createdAt: { type: Date, default: Date.now }
     }

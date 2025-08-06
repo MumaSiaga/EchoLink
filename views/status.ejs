@@ -28,8 +28,9 @@
 
     <p><strong>Bio:</strong> <%= bio || 'No bio available.' %></p>
     <p><strong>Age:</strong> <%= age || 'N/A' %></p>
+    
+    <div class="stories-container" id="storiesContainer">
 
-    <div class="stories-container"  onclick="viewMyStoryFromStatus()">
       <% if (stories.length === 0) { %>
         <div class="story-card view-story">
           <div class="no-story-text">No Active Story</div>
@@ -53,6 +54,16 @@
 
   </main>
     <script>
+ const storiesContainer = document.getElementById('storiesContainer');
+  const isPublic = "<%= user.ProfileStatus %>" === 'Public';
+
+  if (isPublic) {
+    storiesContainer.addEventListener('click', viewMyStoryFromStatus);
+  } else {
+    storiesContainer.style.cursor = 'default'; 
+  }
+
+
   window.hasStories = <%- JSON.stringify(user.status && user.status.some(s => new Date() - new Date(s.createdAt) < 86400000)) %>;
   window.currentUserId = "<%= user._id %>";
 

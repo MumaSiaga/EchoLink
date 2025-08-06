@@ -5,7 +5,7 @@ const router = express.Router();
 const { ensureAuth, redirectIfLoggedIn } = require('../middlewares/authMiddleware');
 const User = require('../models/User');
 const Chat = require('../models/Chat');
-const { storage } = require('../config/cloudinary');
+const {cloudinary,storage } = require('../config/cloudinary');
 const upload = multer({
   storage,
   limits: {
@@ -59,23 +59,24 @@ router.post('/profile/age',ensureAuth,async (req,res)=>{
     res.status(500).send('Server error updating age');
   }
 });
-
 router.post('/stories/upload', ensureAuth, upload.single('story'), async (req, res) => {
   try {
     const userId = req.user._id;
     const file = req.file;
-
+    
     if (!file) return res.status(400).send('No file uploaded');
 
     const ext = path.extname(file.originalname).toLowerCase();
     let mediaType = 'image';
     if (['.mp4', '.mov', '.webm', '.avi', '.flv', '.mkv'].includes(ext)) mediaType = 'video';
-
+    
     const newStory = {
       mediaType,
+      public_id: file.filename, 
       mediaUrl: file.path, 
       createdAt: new Date()
     };
+    
 
     await User.findByIdAndUpdate(userId, { $push: { status: newStory } });
 
@@ -95,13 +96,12 @@ router.get('/stories/view/:userId', ensureAuth, async (req, res) => {
     const recentStories = (user.status || []).filter(story => {
       return (now - new Date(story.createdAt)) < 24 * 60 * 60 * 1000;
     });
-
-    const showDelete = req.query.from === 'profile';
+const isOwner = req.user._id.toString() === user._id.toString();
 
     res.render('storyViewer', {
       userID: user._id,
       stories: recentStories,
-      showDelete
+      showDelete: isOwner,
     });
   } catch (err) {
     console.error('Error loading stories:', err);
@@ -109,16 +109,33 @@ router.get('/stories/view/:userId', ensureAuth, async (req, res) => {
   }
 });
 
-router.post('/stories/delete/:index', ensureAuth, async (req, res) => {
+router.post('/stories/delete/:id', ensureAuth, async (req, res) => {
+ 
   const user = await User.findById(req.user._id);
-  const index = parseInt(req.params.index);
+  const storyId = req.params.id;
 
-  if (!user || isNaN(index) || index < 0 || index >= user.status.length) {
-    return res.status(400).send('Invalid story index');
+  if (!user || !storyId) {
+    return res.status(400).send('Invalid story ID or user');
   }
 
-  user.status.splice(index, 1); 
+  const story = user.status.find(s => s._id.toString() === storyId);
+  
+  if (story.public_id) {
+    try {
+      
+      await cloudinary.uploader.destroy(story.public_id, {
+        resource_type: story.mediaType === 'video' ? 'video' : 'image'
+      });
+    } catch (err) {
+      console.error('Cloudinary deletion error:', err);
+     
+    }
+  }
+
+
+  user.status.splice(user.status.indexOf(story), 1);
   await user.save();
+
   res.redirect('/stories/view/' + user._id);
 });
 
