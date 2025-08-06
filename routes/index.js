@@ -2,9 +2,10 @@ const multer = require('multer');
 const path = require('path');
 const express = require('express');
 const router = express.Router();
-const { ensureAuth, redirectIfLoggedIn } = require('../middlewares/authMiddleware');
+const { ensureAuth, redirectIfLoggedIn,redirectIfNotAdmin } = require('../middlewares/authMiddleware');
 const User = require('../models/User');
 const Chat = require('../models/Chat');
+const bcrypt = require('bcrypt');
 
 const { storage } = require('../config/cloudinary');
 const upload = multer({
@@ -16,38 +17,25 @@ const upload = multer({
 
 router.post('/admin/login', async (req, res) => {
   const { email, password } = req.body;
-  const admin = await User.findOne({ email, role: 'admin' });
-
-  if (!admin || admin.password !== password) {
-    return res.status(401).send('Invalid credentials');
-  }
-
-  req.session.user = admin; 
-  res.redirect('/admin/dashboard');
-});
-router.post('/Admin', async (req, res) => {
-  const { email, password } = req.body;
 
   try {
     const user = await User.findOne({ email });
-    
+
     if (!user) return res.status(400).send('User not found');
 
-    if (user.password !== password) {
-      return res.status(400).send('Incorrect password');
-    }
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(400).send('Incorrect password');
 
-    if (user.role !== 'admin') {
-      return res.status(403).send('Access denied: not an admin');
-    }
+    if (user.role !== 'admin') return res.status(403).send('Access denied: not an admin');
 
+    req.session.user = user;
     res.status(200).send('Login successful');
   } catch (err) {
     console.error(err);
     res.status(500).send('Server error');
   }
 });
-router.get('/Admin',redirectIfLoggedIn, async (req, res) => {
+router.get('/admin', redirectIfNotAdmin, async (req, res) => {
   const users = await User.find({ role: 'user' });
   res.render('Admin', { users });
 });

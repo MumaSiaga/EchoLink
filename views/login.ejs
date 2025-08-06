@@ -30,14 +30,14 @@
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
 
-    const res = await fetch('/Admin', {
+    const res = await fetch('/admin/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
     });
 
     if (res.ok) {
-      window.location.href = '/Admin';
+      window.location.href = '/admin';
     } else {
       const err = await res.text();
       alert(err || 'Login failed');
