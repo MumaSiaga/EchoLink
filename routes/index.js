@@ -6,8 +6,8 @@ const { ensureAuth, redirectIfLoggedIn,redirectIfNotAdmin } = require('../middle
 const User = require('../models/User');
 const Chat = require('../models/Chat');
 const bcrypt = require('bcrypt');
-
-const { storage } = require('../config/cloudinary');
+const adminController = require('../controllers/adminController');
+const {cloudinary,storage } = require('../config/cloudinary');
 const upload = multer({
   storage,
   limits: {
@@ -66,6 +66,32 @@ router.post('/setup', ensureAuth, async (req, res) => {
     res.status(500).send('Error updating profile');
   }
 });
+
+
+router.post('/admin/users/:id/verify', redirectIfNotAdmin, adminController.verifyUser);
+
+router.delete('/admin/users/:id', redirectIfNotAdmin, async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).send('User not found');
+    }
+
+
+
+    await User.findByIdAndDelete(userId);
+
+    res.status(200).send('User deleted');
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Server error');
+  }
+});
+
+ 
+
 
 router.use('/', require('./authRoutes'));
 router.use('/', require('./chatRoutes'));

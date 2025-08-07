@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>View Closed Chat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="/css/chat.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+
+  <div class="chat-container" style="margin-top: 60px; flex-direction: column;">
+    
+   
+    <button onclick="window.history.back()" class="unmatch-btn" style="align-self: flex-start; margin: 1rem 0 0 1rem;">
+      <i class="fa fa-arrow-left"></i> Back
+    </button>
+
+    <div class="chat-box" style="margin: 1rem;">
+
+      <% if (chat.messages.length === 0) { %>
+        <p style="color: #aaa;">No messages in this chat.</p>
+      <% } else { %>
+        <% chat.messages.forEach(msg => { %>
+          <div class="message <%= msg.sender._id.toString() === currentUser.toString() ? 'me' : 'other' %>">
+            <%= msg.content %>
+            <span class="timestamp"><%= new Date(msg.timestamp).toLocaleString() %></span>
+          </div>
+        <% }) %>
+      <% } %>
+
+    </div>
+  </div>
+
+</body>
+</html>

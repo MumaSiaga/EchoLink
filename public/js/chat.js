@@ -1,3 +1,59 @@
+console.log('Chat history script loaded');
+document.addEventListener('DOMContentLoaded', async () => {
+  const container = document.getElementById('chat-history-list');
+  if (!container) return;
+
+  try {
+    const res = await fetch('/chat/history');
+    const history = await res.json();
+
+    if (!history.length) {
+      container.innerHTML = '<p style="color:#888;">No previous chats</p>';
+      return;
+    }
+
+    history.forEach(chat => {
+      const div = document.createElement('div');
+      div.className = 'chat-history-item';
+
+     const isPrivateOrClosed = chat.ProfileStatus === 'Private' || chat.isClosed;
+
+    const name = isPrivateOrClosed ? 'Peer' : chat.username;
+    let profilePic = isPrivateOrClosed ? '/images/profile.jpg' : (chat.profilePicture || '/images/profile.jpg');
+      
+      const lastMessage = chat.lastMessage || '';
+      
+      div.innerHTML = `
+      <img src="${profilePic}" class="chat-icon" alt="User" />
+      <div class="chat-info">
+        <strong>
+          ${name}
+          ${chat.verified === 'true'
+            ? '<img src="/images/verified.png" alt="Verified" title="Verified" style="width: 16px; height: 16px; margin-left: 1px; vertical-align: middle;">'
+            : ''}
+        </strong>
+        <p>${lastMessage}</p>
+      </div>
+    `;
+
+      div.addEventListener('click', () => {
+        if (!chat.isClosed) {
+          window.location.href = `/chat`;
+        } else {
+          alert(`This chat is closed. You can view past messages.`);
+          window.location.href = `/chat/view/${chat.chatId}`;
+        }
+      });
+
+      container.appendChild(div);
+    });
+  } catch (error) {
+    console.error('Error loading chat history:', error);
+  }
+});
+
+
+
 document.addEventListener('DOMContentLoaded', () => {
   const socket = io();
   const userId = window.currentUserId;
@@ -14,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
     roomId = r;
     chatId = c;
 
-    document.getElementById('status').innerText = "You can chat now!";
+    document.getElementById('status').innerText = "Connected";
     const chatBox = document.getElementById('chat-box');
     chatBox.innerHTML = '';
 
@@ -53,7 +109,7 @@ socket.on('refreshPage', () => {
   socket.on('unmatched', () => {
     alert('You have been unmatched.');
     document.getElementById('chat-box').innerHTML = '';
-    document.getElementById('status').textContent = 'Looking for a match...';
+    document.getElementById('status').textContent = '';
     socket.emit('joinQueue', { userId });
   });
 

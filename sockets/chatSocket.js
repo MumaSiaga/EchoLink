@@ -84,7 +84,39 @@ module.exports = (io) => {
           }
           activeMatches.set(userStrId, { roomId, chatId: chat._id, partnerId: matchedUserIdStr });
           activeMatches.set(matchedUserIdStr, { roomId, chatId: chat._id, partnerId: userStrId });
+          const alreadyMatched1 = await User.findOne({
+            _id: userStrId,
+            'Matches.userId': matchedUserIdStr
+          });
 
+          const alreadyMatched2 = await User.findOne({
+            _id: matchedUserIdStr,
+            'Matches.userId': userStrId
+          });
+
+          if (!alreadyMatched1) {
+            await User.findByIdAndUpdate(userStrId, {
+              $addToSet: {
+                Matches: {
+                  userId: matchedUserIdStr,
+                  chatId: chat._id,
+                  createdAt: new Date()
+                }
+              }
+            });
+          }
+
+          if (!alreadyMatched2) {
+            await User.findByIdAndUpdate(matchedUserIdStr, {
+              $addToSet: {
+                Matches: {
+                  userId: userStrId,
+                  chatId: chat._id,
+                  createdAt: new Date()
+                }
+              }
+            });
+          }
           io.to(roomId).emit('chatStarted', {
             roomId,
             chatId: chat._id,

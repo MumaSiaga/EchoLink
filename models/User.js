@@ -18,6 +18,16 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: '/images/profile.jpg'
   },
+Matches:{
+    type: [
+      {
+        userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        chatId: { type: mongoose.Schema.Types.ObjectId, ref: 'Chat' },
+        createdAt: { type: Date, default: Date.now }
+      }
+    ],
+    default: []
+  },  
  ProfileStatus: {
     type: String,
     enum: ['Public', 'Private'],

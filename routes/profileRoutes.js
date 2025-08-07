@@ -110,33 +110,41 @@ const isOwner = req.user._id.toString() === user._id.toString();
 });
 
 router.post('/stories/delete/:id', ensureAuth, async (req, res) => {
- 
-  const user = await User.findById(req.user._id);
-  const storyId = req.params.id;
+  try {
+    const user = await User.findById(req.user._id);
+    const storyId = req.params.id;
 
-  if (!user || !storyId) {
-    return res.status(400).send('Invalid story ID or user');
-  }
-
-  const story = user.status.find(s => s._id.toString() === storyId);
-  
-  if (story.public_id) {
-    try {
-      
-      await cloudinary.uploader.destroy(story.public_id, {
-        resource_type: story.mediaType === 'video' ? 'video' : 'image'
-      });
-    } catch (err) {
-      console.error('Cloudinary deletion error:', err);
-     
+    if (!user || !storyId) {
+      return res.status(400).send('Invalid story ID or user');
     }
+
+    const story = user.status.find(s => s._id.toString() === storyId);
+
+    if (!story) {
+      return res.status(404).send('Story not found');
+    }
+
+   
+    if (story.public_id) {
+      try {
+        await cloudinary.uploader.destroy(story.public_id, {
+          resource_type: story.mediaType === 'video' ? 'video' : 'image'
+        });
+      } catch (err) {
+        console.error('Cloudinary deletion error:', err);
+    
+      }
+    }
+
+   
+    user.status = user.status.filter(s => s._id.toString() !== storyId);
+    await user.save();
+
+    res.redirect('/stories/view/' + user._id); 
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Server error');
   }
-
-
-  user.status.splice(user.status.indexOf(story), 1);
-  await user.save();
-
-  res.redirect('/stories/view/' + user._id);
 });
 
 

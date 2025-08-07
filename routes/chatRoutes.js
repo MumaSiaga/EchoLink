@@ -4,13 +4,13 @@ const router = express.Router();
 const User = require('../models/User');
 const Chat = require('../models/Chat');
 
-
+const { getChatHistory } = require('../controllers/chatController');
 const { ensureAuth } = require('../middlewares/authMiddleware');
 
 router.get('/', ensureAuth, (req, res) => {
   res.render('chat', { user: req.user });
 });
-
+router.get('/chat/history', ensureAuth, getChatHistory);
 router.get('/chat', ensureAuth, async (req, res) => {
   const user = req.user || req.session.user;
    const chat = await Chat.findOne({ participants: user._id,isClosed: false});
@@ -49,6 +49,30 @@ router.get('/profile', ensureAuth, async (req, res) => {
   } catch (err) {
     console.error('Error fetching profile:', err);
     res.status(500).send('Error loading profile');
+  }
+});
+router.get('/chat/view/:chatId', ensureAuth, async (req, res) => {
+  try {
+    const chatId = req.params.chatId;
+    const userId = req.user._id; 
+
+    const chat = await Chat.findById(chatId)
+      .populate('participants', 'username profilePicture ProfileStatus')
+      .populate('messages.sender', 'username');
+
+    if (!chat) return res.status(404).send('Chat not found');
+
+    const isParticipant = chat.participants.some(p => p._id.toString() === userId.toString());
+
+    if (!isParticipant) return res.status(403).send('Not authorized to view this chat');
+
+    res.render('chatView', {
+      chat,
+      currentUser: userId
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Server Error');
   }
 });
 

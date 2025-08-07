@@ -68,6 +68,13 @@
     onchange="document.getElementById('uploadForm').submit()"
   />
 </form>
+  <p>
+  <%= user.username %>
+  <% if (user.verified === "true") { %>
+    <img src="/images/verified.png" alt="Verified" title="Verified"
+         style="width: 16px; height: 16px; margin-left: 1px; vertical-align: middle;">
+  <% } %>
+</p>
   <p><span id="bioText"><%= user.bio || "" %></span></p>
 <button id="editBioBtn">Add / Edit Bio</button>
 
