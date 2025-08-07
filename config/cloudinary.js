@@ -11,8 +11,9 @@ const storage = new CloudinaryStorage({
   cloudinary,
   params: async (req, file) => {
     const isVideo = file.mimetype.startsWith('video/');
+    const targetFolder = req.query.folder || 'echolink_uploads';
     return {
-      folder: 'echolink_uploads',
+      folder: targetFolder,
       resource_type: isVideo ? 'video' : 'image',
       allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'mp4', 'mov', 'webm', 'avi', 'flv', 'mkv'],
       transformation: isVideo ? [{ duration: 30 }] : undefined

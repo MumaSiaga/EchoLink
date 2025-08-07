@@ -37,6 +37,7 @@
   background-color: rgb(3, 26, 26);"
   
 />
+
   </div>
   <div class="right-section">
     <div id="profileModal" class="modal">
@@ -97,6 +98,12 @@
 </div>
     <p>Email: <%= user.email %></p>
     <p>Joined on: <%= user.createdAt.toLocaleDateString() %></p>
+ <% if (user.verified === "false") { %>
+ <form action="/upload/verify-age?folder=verifyage" method="POST" enctype="multipart/form-data">
+  <input type="file" name="file" required />
+  <button type="submit">Verify Account</button>
+</form>
+<% } %>
     <button onclick="window.location.href='auth/logout'" class="logout-button">Logout</button>
  
  </div>

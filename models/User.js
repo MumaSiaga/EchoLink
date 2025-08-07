@@ -35,8 +35,13 @@ const userSchema = new mongoose.Schema({
   default: []
 },
   bio: { type: String, default: '' },
-  password: { type: String, default: null }, 
-  verified: { type: Boolean, default: false },
+  password: { type: String, default: null },
+  verified: {
+    type: String,
+    enum: ['true', 'false', 'pending'],
+    default: 'false'
+  },
+  verificationImage: { type: String, default: null },
   createdAt: {
     type: Date,
     default: Date.now

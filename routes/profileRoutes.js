@@ -157,4 +157,21 @@ router.post("/profile/visibility", ensureAuth, async (req, res) => {
   }
 });
 
+router.post('/upload/verify-age', upload.single('file'), async (req, res) => {
+  try {
+    
+    await User.findByIdAndUpdate(req.user._id, {
+      verified: 'pending',
+      
+      verificationImage: req.file.path
+    });
+   
+
+    res.redirect('/profile');
+  } catch (error) {
+    console.error('Error updating verification:', error);
+    res.status(500).send('Verification upload failed');
+  }
+});
+
 module.exports = router;
