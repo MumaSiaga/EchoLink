@@ -79,11 +79,18 @@ router.delete('/admin/users/:id', redirectIfNotAdmin, async (req, res) => {
       return res.status(404).send('User not found');
     }
 
+    await Chat.deleteMany({ participants: userId });
 
+    
+    await User.updateMany(
+      { 'Matches.userId': userId },
+      { $pull: { Matches: { userId: userId } } }
+    );
 
+    
     await User.findByIdAndDelete(userId);
 
-    res.status(200).send('User deleted');
+    res.status(200).send('User and related chats deleted');
   } catch (err) {
     console.error(err);
     res.status(500).send('Server error');
