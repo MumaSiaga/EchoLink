@@ -1,12 +1,57 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Notifications
-    </title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Your Notifications</title>
+  <link rel="stylesheet" href="/css/notifications.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body>
-    
+    <header>
+        <div class="icon-bar">
+      <a href="/chat"><i class="fa fa-home"></i></a>
+      <a href="/status/<%= partnerId%>"><i class="fa fa-user" style="color:white;"></i></a>
+      <a href="/profile"><i class="fa fa-cog"></i></a>
+      <a href="/notifications" style="position: relative;">
+        <i class="fa fa-bell" style="color:white;"></i>
+        <span id="notif-count"></span>
+      </a>
+</div>
+    </header>
+
+  <div class="notification-head">
+    <h1>Notifications</h1>
+    <button id="mark-all-read" class="mark-all-read">
+      <span>✓✓</span>
+      Mark all as read
+    </button>
+    <button id="delete-all" class="delete-all">
+      
+      Delete all
+    </button>
+  </div>
+  
+  <div class="notification-group">
+    <div class="group-header">Today</div>
+    <ul id="notifications-list">
+      <li>Loading notifications...</li>
+    </ul>
+  </div>
+
+ 
+  <div id="notificationModal" class="modal">
+    <div class="modal-content">
+      <h3>Notification Options</h3>
+      <p>What would you like to do with this notification?</p>
+      <div class="modal-buttons">
+        <button id="modalReadBtn" class="modal-btn modal-btn-read">Mark as Read</button>
+        <button id="modalDeleteBtn" class="modal-btn modal-btn-delete">Delete</button>
+        <button id="modalCancelBtn" class="modal-btn modal-btn-cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/notifications.js"></script>
 </body>
 </html>

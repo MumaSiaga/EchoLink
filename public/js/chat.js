@@ -1,4 +1,64 @@
-console.log('Chat history script loaded');
+document.addEventListener('DOMContentLoaded', async () => {
+  console.log('DOM loaded, currentUserId:', window.currentUserId);
+
+  // Single socket connection for both chat and notifications
+  const socket = io({ query: { userId: window.currentUserId } });
+
+  // Initialize notification count on page load
+  try {
+    const response = await fetch('/notifications/list');
+    if (response.ok) {
+      const notifications = await response.json();
+      const unreadCount = notifications.filter(n => !n.read).length;
+      updateNotificationCount(unreadCount);
+    }
+  } catch (error) {
+    console.error('Error fetching initial notification count:', error);
+  }
+
+  socket.on('connect', () => {
+    console.log('Socket connected with id:', socket.id);
+  });
+
+  socket.on('disconnect', () => {
+    console.log('Socket disconnected');
+  });
+
+  socket.on('newNotification', (notif) => {
+    console.log('New Notification received:', notif);
+    incrementNotificationCount();
+  });
+
+  // Add this function to update notification count
+  function updateNotificationCount(count) {
+    const notifCountElem = document.getElementById('notif-count');
+    if (notifCountElem) {
+      if (count > 0) {
+        notifCountElem.textContent = count;
+        notifCountElem.style.display = 'inline-block';
+      } else {
+        notifCountElem.textContent = '';
+        notifCountElem.style.display = 'none';
+      }
+      console.log('Notification count updated to:', count);
+    } else {
+      console.warn('notif-count element not found');
+    }
+  }
+
+  function incrementNotificationCount() {
+    const notifCountElem = document.getElementById('notif-count');
+    if (notifCountElem) {
+      let currentCount = parseInt(notifCountElem.textContent.trim()) || 0;
+      updateNotificationCount(currentCount + 1);
+    } else {
+      console.warn('notif-count element not found');
+    }
+  }
+});
+
+
+  
 document.addEventListener('DOMContentLoaded', async () => {
   const container = document.getElementById('chat-history-list');
   if (!container) return;

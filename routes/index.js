@@ -99,7 +99,7 @@ router.delete('/admin/users/:id', redirectIfNotAdmin, async (req, res) => {
 
  
 
-
+router.use('/', require('./notificationRoutes'));
 router.use('/', require('./authRoutes'));
 router.use('/', require('./chatRoutes'));
 router.use('/', require('./profileRoutes'));

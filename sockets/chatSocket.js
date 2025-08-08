@@ -1,6 +1,6 @@
 const Chat = require('../models/Chat');
 const User = require('../models/User');
-
+const Notification = require('../models/Notifications');
 let waitingUsers = [];
 const socketRoomMap = new Map();
 const activeMatches = new Map();
@@ -17,147 +17,249 @@ function getPairKey(id1, id2) {
 
 module.exports = (io) => {
   io.on('connection', (socket) => {
-    console.log('🔌 User connected:', socket.id);
-
     socket.on('joinQueue', async ({ userId }) => {
       try {
         const user = await User.findById(userId);
-        if (!user) return console.error('User not found:', userId);
+        if (!user) {
+          console.error('User not found:', userId);
+      return;
+    }
 
-        const userStrId = user._id.toString();
+    const userStrId = user._id.toString();
 
-        if (activeMatches.has(userStrId)) {
-          const { roomId, chatId } = activeMatches.get(userStrId);
-          socket.join(roomId);
-          socketRoomMap.set(socket.id, roomId);
+   
+    socket.join(userStrId);
 
-          const chat = await Chat.findById(chatId);
-          if (!chat) return;
+   
+    if (activeMatches.has(userStrId)) {
+      const { roomId, chatId } = activeMatches.get(userStrId);
+      socket.join(roomId);
+      socketRoomMap.set(socket.id, roomId);
 
-          return io.to(socket.id).emit('chatStarted', {
-            roomId,
-            chatId,
-            messages: chat.messages
-          });
-        }
+      const chat = await Chat.findById(chatId);
+      if (!chat) return;
 
-        
-        const now = Date.now();
-        const filteredWaiting = waitingUsers.filter(u => {
-          const pairKey = getPairKey(userStrId, u.userId);
-          if (recentUnmatches.has(pairKey)) {
-            const lastUnmatchTime = recentUnmatches.get(pairKey);
-            
-            if (now - lastUnmatchTime < UNMATCH_BLOCK_TIME) return false;
+      // Mark all unread notifications for this chat as read when user joins
+      await Notification.updateMany(
+        { 
+          user: userStrId, 
+          type: 'message',
+          read: { $ne: true },
+          link: `/chat/view/${chatId}`
+        },
+        { read: true }
+      );
+
+      return io.to(socket.id).emit('chatStarted', {
+        roomId,
+        chatId,
+        messages: chat.messages
+      });
+    }
+
+   
+    const now = Date.now();
+    const filteredWaiting = waitingUsers.filter(u => {
+      const pairKey = getPairKey(userStrId, u.userId);
+      if (recentUnmatches.has(pairKey)) {
+        const lastUnmatchTime = recentUnmatches.get(pairKey);
+        if (now - lastUnmatchTime < UNMATCH_BLOCK_TIME) return false;
+      }
+      return true;
+    });
+
+   
+    const matchIndex = filteredWaiting.findIndex(u =>
+      u.userId !== userStrId && Math.abs(u.age - user.age) <= 1
+    );
+
+    if (matchIndex !== -1) {
+      const matchedUser = waitingUsers.find(
+        u => u.userId === filteredWaiting[matchIndex].userId
+      );
+
+      
+      waitingUsers = waitingUsers.filter(u => u.userId !== matchedUser.userId);
+
+      const matchedUserIdStr = matchedUser.userId;
+      const roomId = `${socket.id}-${matchedUser.socketId}`;
+
+      socket.join(roomId);
+      io.to(matchedUser.socketId).socketsJoin(roomId);
+
+      socketRoomMap.set(socket.id, roomId);
+      socketRoomMap.set(matchedUser.socketId, roomId);
+
+      
+      let chat = await Chat.findOne({
+        participants: { $all: [userStrId, matchedUserIdStr] }
+      });
+
+      if (!chat) {
+        chat = new Chat({
+          participants: [userStrId, matchedUserIdStr],
+          messages: []
+        });
+        await chat.save();
+      } else {
+        await Chat.findByIdAndUpdate(chat._id, { isClosed: false });
+      }
+
+      activeMatches.set(userStrId, {
+        roomId,
+        chatId: chat._id,
+        partnerId: matchedUserIdStr
+      });
+      activeMatches.set(matchedUserIdStr, {
+        roomId,
+        chatId: chat._id,
+        partnerId: userStrId
+      });
+
+      
+      const alreadyMatched1 = await User.findOne({
+        _id: userStrId,
+        'Matches.userId': matchedUserIdStr
+      });
+      const alreadyMatched2 = await User.findOne({
+        _id: matchedUserIdStr,
+        'Matches.userId': userStrId
+      });
+
+      if (!alreadyMatched1) {
+        await User.findByIdAndUpdate(userStrId, {
+          $addToSet: {
+            Matches: {
+              userId: matchedUserIdStr,
+              chatId: chat._id,
+              createdAt: new Date()
+            }
           }
-          return true;
+        });
+      }
+
+      if (!alreadyMatched2) {
+        await User.findByIdAndUpdate(matchedUserIdStr, {
+          $addToSet: {
+            Matches: {
+              userId: userStrId,
+              chatId: chat._id,
+              createdAt: new Date()
+            }
+          }
+        });
+      }
+
+      
+      try {
+        const notif1 = new Notification({
+          user: userStrId,
+          type: 'match',
+          title: 'You matched!',
+          body: `You’ve been matched.`,
+          link: `/chat/view/${chat._id}`
+        });
+        const notif2 = new Notification({
+          user: matchedUserIdStr,
+          type: 'match',
+          title: 'You matched!',
+          body: `You’ve been matched.`,
+          link: `/chat/view/${chat._id}`
         });
 
-        
-        const matchIndex = filteredWaiting.findIndex(u =>
-          u.userId !== userStrId && Math.abs(u.age - user.age) <= 1
-        );
+        await notif1.save();
+        await notif2.save();
 
-        if (matchIndex !== -1) {
-          
-          const matchedUser = waitingUsers.find(u => u.userId === filteredWaiting[matchIndex].userId);
-
-          
-          waitingUsers = waitingUsers.filter(u => u.userId !== matchedUser.userId);
-
-          const matchedUserIdStr = matchedUser.userId;
-          const roomId = `${socket.id}-${matchedUser.socketId}`;
-
-          socket.join(roomId);
-          io.to(matchedUser.socketId).socketsJoin(roomId);
-
-          socketRoomMap.set(socket.id, roomId);
-          socketRoomMap.set(matchedUser.socketId, roomId);
-
-          let chat = await Chat.findOne({participants: { $all: [userStrId, matchedUserIdStr] }});
-
-          if (!chat) {
-          chat = new Chat({ participants: [userStrId, matchedUserIdStr], messages: [] });
-          await chat.save();
-          } else {
-          await Chat.findByIdAndUpdate(chat._id, { isClosed: false });
-          }
-          activeMatches.set(userStrId, { roomId, chatId: chat._id, partnerId: matchedUserIdStr });
-          activeMatches.set(matchedUserIdStr, { roomId, chatId: chat._id, partnerId: userStrId });
-          const alreadyMatched1 = await User.findOne({
-            _id: userStrId,
-            'Matches.userId': matchedUserIdStr
-          });
-
-          const alreadyMatched2 = await User.findOne({
-            _id: matchedUserIdStr,
-            'Matches.userId': userStrId
-          });
-
-          if (!alreadyMatched1) {
-            await User.findByIdAndUpdate(userStrId, {
-              $addToSet: {
-                Matches: {
-                  userId: matchedUserIdStr,
-                  chatId: chat._id,
-                  createdAt: new Date()
-                }
-              }
-            });
-          }
-
-          if (!alreadyMatched2) {
-            await User.findByIdAndUpdate(matchedUserIdStr, {
-              $addToSet: {
-                Matches: {
-                  userId: userStrId,
-                  chatId: chat._id,
-                  createdAt: new Date()
-                }
-              }
-            });
-          }
-          io.to(roomId).emit('chatStarted', {
-            roomId,
-            chatId: chat._id,
-            messages: chat.messages
-          });
-          io.to(roomId).emit('refreshPage');
-
-        } else {
-          waitingUsers.push({ socketId: socket.id, userId: userStrId, age: user.age });
-        }
-        
+       
+        io.to(userStrId).emit('newNotification', notif1);
+        io.to(matchedUserIdStr).emit('newNotification', notif2);
       } catch (err) {
-        console.error('Error in joinQueue:', err);
+        console.error('Error creating match notifications:', err);
       }
-    });
+
+     
+      io.to(roomId).emit('chatStarted', {
+        roomId,
+        chatId: chat._id,
+        messages: chat.messages
+      });
+      io.to(roomId).emit('refreshPage');
+
+    } else {
+    
+      waitingUsers.push({
+        socketId: socket.id,
+        userId: userStrId,
+        age: user.age
+      });
+    }
+  } catch (err) {
+    console.error('Error in joinQueue:', err);
+  }
+});
+
 
     socket.on('sendMessage', async ({ roomId, senderId, chatId, message }) => {
-      try {
-        const chat = await Chat.findById(chatId);
-        if (!chat) return;
+  try {
+    const chat = await Chat.findById(chatId);
+    if (!chat) return;
 
-        const timestamp = new Date();
+    const timestamp = new Date();
 
-        chat.messages.push({
-          sender: senderId,
-          content: message,
-          timestamp
-        });
-
-        await chat.save();
-
-        io.to(roomId).emit('receiveMessage', {
-          senderId,
-          message,
-          timestamp
-        });
-
-      } catch (err) {
-        console.error(' Error sending message:', err);
-      }
+    // Add message to chat
+    chat.messages.push({
+      sender: senderId,
+      content: message,
+      timestamp
     });
+    await chat.save();
+
+    // Send message to all users in the room
+    io.to(roomId).emit('receiveMessage', {
+      senderId,
+      message,
+      timestamp
+    });
+
+    // Get receiver ID
+    const receiverId = chat.participants.find(id => id.toString() !== senderId);
+
+    if (receiverId) {
+      // Check if receiver is currently in the chat room (active)
+      const receiverSocket = io.sockets.sockets.get(receiverId.toString());
+      const isReceiverActive = receiverSocket && receiverSocket.rooms.has(roomId);
+
+      if (!isReceiverActive) {
+        // Only create notification if receiver is not actively in the chat
+        const notif = new Notification({
+          user: receiverId,
+          type: 'message',
+          title: 'New Message',
+          body: message.length > 100 ? message.slice(0, 100) + '...' : message, 
+          link: `/chat/view/${chatId}`
+        });
+        await notif.save();
+
+        // Send notification
+        io.to(receiverId.toString()).emit('newNotification', notif);
+      } else {
+        // If receiver is active in chat, mark any existing unread notifications as read
+        await Notification.updateMany(
+          { 
+            user: receiverId, 
+            type: 'message',
+            read: { $ne: true },
+            link: `/chat/view/${chatId}`
+          },
+          { read: true }
+        );
+      }
+    }
+
+  } catch (err) {
+    console.error('Error sending message:', err);
+  }
+});
 
     socket.on('typing', ({ roomId, senderId, isTyping }) => {
       socket.to(roomId).emit('typingNotification', {
@@ -186,6 +288,26 @@ module.exports = (io) => {
 
     
     await Chat.findByIdAndUpdate(chatId, { isClosed: true });
+      const notifUser = new Notification({
+      user: userId,
+      type: 'unmatch',
+      title: 'You unmatched',
+      body: 'You have unmatched with your partner.',
+      link: null
+    });
+    const notifPartner = new Notification({
+      user: partnerId,
+      type: 'unmatch',
+      title: 'You unmatched',
+      body: 'Your partner has unmatched with you.',
+      link: null
+    });
+
+    await notifUser.save();
+    await notifPartner.save();
+
+    io.to(userId).emit('newNotification', notifUser);
+    io.to(partnerId).emit('newNotification', notifPartner);
 
    
     io.to(roomId).emit('unmatched');
@@ -202,14 +324,54 @@ module.exports = (io) => {
       console.log('🔌 User disconnected:', socket.id);
     });
 
-    
-    setInterval(() => {
-      const now = Date.now();
-      for (const [pairKey, timestamp] of recentUnmatches.entries()) {
-        if (now - timestamp > UNMATCH_BLOCK_TIME) {
-          recentUnmatches.delete(pairKey);
+setInterval(async () => {
+  const now = Date.now();
+
+  for (const [pairKey, timestamp] of recentUnmatches.entries()) {
+    if (now - timestamp > UNMATCH_BLOCK_TIME) {
+      recentUnmatches.delete(pairKey);
+    }
+  }
+
+  try {
+    const inactiveChats = await Chat.find({
+      isClosed: false,
+      messages: { $exists: true, $not: { $size: 0 } }
+    }).lean();
+
+    for (const chat of inactiveChats) {
+      const lastMsg = chat.messages[chat.messages.length - 1];
+      if (now - new Date(lastMsg.timestamp).getTime() > 10 * 60 * 1000) {
+        await Chat.findByIdAndUpdate(chat._id, { isClosed: true });
+
+        for (const userId of chat.participants) {
+          if (activeMatches.has(userId.toString())) {
+            const notif = new Notification({
+              user: userId.toString(),
+              type: 'reminder',
+              title: 'Chat closed',
+              body: 'Chat closed due to inactivity and unmatch.',
+              link: `/chat/view/${chat._id}`
+            });
+            await notif.save();
+            io.to(userId.toString()).emit('newNotification', notif);
+            activeMatches.delete(userId.toString());
+          }
+        }
+
+        const participants = chat.participants.map(id => id.toString()).sort();
+        for (let i = 0; i < participants.length; i++) {
+          for (let j = i + 1; j < participants.length; j++) {
+            const pairKey = `${participants[i]}-${participants[j]}`;
+            recentUnmatches.set(pairKey, now);
+          }
         }
       }
-    }, 5 * 60 * 1000);
+    }
+  } catch (err) {
+    console.error('Error closing inactive chats:', err);
+  }
+}, 10 * 60 * 1000);
+
   });
 };
