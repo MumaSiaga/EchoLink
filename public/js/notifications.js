@@ -127,7 +127,7 @@ async function deleteSingleNotification(notificationId) {
 
 function getNotificationIcon(type) {
   const icons = {
-    'default': '🔔'
+    'default': 'images/notifications.png'
   };
   return icons[type] || icons.default;
 }
@@ -176,13 +176,14 @@ async function loadNotifications() {
 
     notifications.forEach(n => {
       const li = document.createElement('li');
-      
-      
+
       const iconDiv = document.createElement('div');
-      iconDiv.className = 'notification-icon';
-      iconDiv.textContent = getNotificationIcon(n.type);
-      
-      
+      const iconImg = document.createElement('img');
+      iconImg.src = getNotificationIcon(n.type);
+      iconImg.alt = n.type;
+      iconImg.className = 'notification-icon-img';
+      iconDiv.appendChild(iconImg);
+
       const contentDiv = document.createElement('div');
       contentDiv.className = 'notification-content';
       
