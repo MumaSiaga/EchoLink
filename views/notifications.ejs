@@ -6,6 +6,10 @@
   <title>Your Notifications</title>
   <link rel="stylesheet" href="/css/notifications.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="/socket.io/socket.io.js"></script>
+     <script>
+    window.currentUserId = "<%= user._id %>";
+  </script>
 </head>
 <body>
     <header>
@@ -52,5 +56,6 @@
   </div>
 
   <script src="/js/notifications.js"></script>
+  <script defer src="/js/socket-global.js"></script>
 </body>
 </html>

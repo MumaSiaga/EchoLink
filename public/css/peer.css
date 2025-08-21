@@ -137,6 +137,26 @@ p {
   text-align: center;
 }
 
+#notif-count {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 18px;
+  height: 18px;
+  background: red;
+  color: white;
+  font-weight: bold;
+  font-size: 12px;
+  line-height: 18px;
+  text-align: center;
+  border-radius: 12px;
+  padding: 0 6px;
+  display: none; /* Start hidden */
+  user-select: none;
+  pointer-events: none; 
+  box-sizing: border-box;
+  white-space: nowrap;
+}
 
 @media (max-width: 768px) {
   .profile-picture {
@@ -166,5 +186,12 @@ p {
 
   .story-label {
     font-size: 14px;
+  }
+
+  #notif-count {
+    min-width: 16px;
+    height: 16px;
+    font-size: 10px;
+    line-height: 16px;
   }
 }

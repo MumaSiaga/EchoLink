@@ -70,9 +70,12 @@ function addStory(event) {
     const file = input.files[0];
     if (file) {
       const formData = new FormData();
-      formData.append('story', file); 
+      formData.append('story', file);
 
       try {
+
+        showLoading();
+
         const res = await fetch('/stories/upload', {
           method: 'POST',
           body: formData
@@ -84,12 +87,24 @@ function addStory(event) {
       } catch (err) {
         console.error(err);
         alert('Failed to upload story.');
+      } finally {
+    
+        hideLoading();
       }
     }
   };
 
-  input.click(); 
+  input.click();
 }
+function removeProfilePhoto() {
+  fetch('/profile/remove', { method: 'POST' })
+    .then(res => {
+      if (res.ok) location.reload();
+      else alert('Failed to remove profile photo');
+    })
+    .catch(err => console.error(err));
+}
+
 
  const ageModal = document.getElementById('ageModal');
   const editAgeBtn = document.getElementById('editAgeBtn');

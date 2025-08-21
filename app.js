@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 const passport = require('passport');
 const session = require('express-session');
 require('./config/auth');
+require("./public/js/Notification")
 
 
 app.set('view engine', 'ejs');

@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
   <link rel="stylesheet" href="/css/peer.css" />
+  
 </head>
 <body>
   <header>
@@ -13,7 +14,10 @@
        <a href="/chat"><i class="fa fa-home"></i></a>
       <a href="/status/<%= partnerId%>"><i class="fa fa-user" style="color:white;"></i></a>
       <a href="/profile"><i class="fa fa-cog"></i></a>
-      <a href="/notifications"><i class="fa fa-bell" style="color:white;"></i></a>
+      <a href="/notifications" style="position: relative;">
+        <i class="fa fa-bell" style="color:white;"></i>
+        <span id="notif-count"></span>
+      </a>
     </div>
   </header>
 
@@ -78,5 +82,6 @@
 </script>
 
   <script src="/js/profile.js"></script>
+  <script src="/js/socket-global.js"></script>
 </body>
 </html>

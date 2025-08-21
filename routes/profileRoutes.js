@@ -12,15 +12,34 @@ const upload = multer({
     fileSize: 100 * 1024 * 1024 
   }
 });
+const profileUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 20 * 1024 * 1024 } 
+});
 
 
-router.post('/profile/upload', ensureAuth, upload.single('profilePicture'), async (req, res) => {
+router.post('/profile/upload', ensureAuth, profileUpload.single('profilePicture'), async (req, res) => {
   try {
-    const imagePath =req.file.path;
+    if (!req.file) return res.status(400).send('No file uploaded');
 
+    const streamUpload = (fileBuffer) => {
+      return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          { folder: 'echolink_uploads', resource_type: 'image' },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        );
+        stream.end(fileBuffer);
+      });
+    };
+
+    const result = await streamUpload(req.file.buffer);
 
     await User.findByIdAndUpdate(req.user._id, {
-      profilePicture: imagePath
+      profilePicture: result.secure_url,
+      profilePicturePublicId: result.public_id
     });
 
     res.redirect('/profile');
@@ -146,6 +165,34 @@ router.post('/stories/delete/:id', ensureAuth, async (req, res) => {
     res.status(500).send('Server error');
   }
 });
+router.post('/profile/remove', ensureAuth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).send('User not found');
+    }
+
+
+    if (user.profilePicturePublicId) {
+      try {
+        await cloudinary.uploader.destroy(user.profilePicturePublicId);
+      } catch (err) {
+        console.error('Cloudinary deletion error:', err);
+      }
+    }
+
+    user.profilePicture = null;
+    user.profilePicturePublicId = null;
+    await user.save();
+
+    res.redirect('/profile');
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Server error');
+  }
+});
+
 
 
 router.post("/profile/visibility", ensureAuth, async (req, res) => {

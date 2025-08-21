@@ -33,6 +33,8 @@ Matches:{
     enum: ['Public', 'Private'],
     default: 'Private'},
     
+    profilePicturePublicId: { type: String, default: null },
+    
  status: {
   type: [
     {

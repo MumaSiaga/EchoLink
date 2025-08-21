@@ -3,80 +3,77 @@ const router = express.Router();
 const Notification = require('../models/Notifications');
 const { ensureAuth } = require('../middlewares/authMiddleware');
 
-
 router.get('/notifications', ensureAuth, (req, res) => {
-
-    const partnerId = req.user.partnerId;
-  res.render('notifications', { partnerId });
+  res.render('notifications', { partnerId: req.user.partnerId , user: req.user });
 });
+
 router.get('/notifications/list', ensureAuth, async (req, res) => {
   try {
-    const notifications = await Notification.find({ user: req.user._id })
-      .sort({ createdAt: -1 })
-      .lean();
+    const notifDoc = await Notification.findOne({ user: req.user._id }).lean();
+    const notifications = notifDoc ? notifDoc.notifications.sort((a, b) => b.createdAt - a.createdAt) : [];
     res.json(notifications);
   } catch (err) {
-    console.error('Error fetching notifications:', err);
     res.status(500).json({ error: 'Server error' });
   }
 });
 
-
-router.patch('/notifications/:id/read', ensureAuth, async (req, res) => {
-    try {
-        await Notification.findOneAndUpdate(
-            { _id: req.params.id, user: req.user._id },
-            { read: true }
-        );
-        res.json({ success: true });
-    } catch (err) {
-        console.error('Error marking notification as read:', err);
-        res.status(500).json({ error: 'Server error' });
-    }
+router.patch('/notifications/:notifId/read', ensureAuth, async (req, res) => {
+  try {
+    await Notification.updateOne(
+      { user: req.user._id, 'notifications._id': req.params.notifId },
+      { $set: { 'notifications.$.read': true } }
+    );
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 router.post('/notifications', ensureAuth, async (req, res) => {
-    try {
-        const notif = new Notification({
-            user: req.body.user,
-            type: req.body.type,
-            title: req.body.title,
-            body: req.body.body,
-            link: req.body.link,
-            metadata: req.body.metadata || {}
-        });
-        await notif.save();
-
-     
-        req.io.to(req.body.user.toString()).emit('newNotification', notif);
-
-        res.status(201).json(notif);
-    } catch (err) {
-        console.error('Error creating notification:', err);
-        res.status(500).json({ error: 'Server error' });
+  try {
+    let notifDoc = await Notification.findOne({ user: req.body.user });
+    if (!notifDoc) {
+      notifDoc = new Notification({ user: req.body.user, notifications: [] });
     }
+
+    notifDoc.notifications.push({
+      type: req.body.type,
+      title: req.body.title,
+      body: req.body.body,
+      link: req.body.link,
+      read: false,
+      createdAt: new Date()
+    });
+
+    await notifDoc.save();
+    res.status(201).json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
-router.delete('/notifications/:id', ensureAuth, async (req, res) => {
-    try {
-        await Notification.findOneAndDelete(
-            { _id: req.params.id, user: req.user._id }
-        );
-        res.json({ success: true });
-    } catch (err) {
-        console.error('Error deleting notification:', err);
-        res.status(500).json({ error: 'Server error' });
-    }
+router.delete('/notifications/:notifId', ensureAuth, async (req, res) => {
+  try {
+    await Notification.updateOne(
+      { user: req.user._id },
+      { $pull: { notifications: { _id: req.params.notifId } } }
+    );
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 router.delete('/notifications', ensureAuth, async (req, res) => {
-    try {
-        await Notification.deleteMany({ user: req.user._id });
-        res.json({ success: true });
-    } catch (err) {
-        console.error('Error deleting notifications:', err);
-        res.status(500).json({ error: 'Server error' });
-    }
+  try {
+    await Notification.updateOne(
+      { user: req.user._id },
+      { $set: { notifications: [] } }
+    );
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 module.exports = router;

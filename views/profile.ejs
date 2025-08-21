@@ -7,13 +7,42 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
   <link rel="stylesheet" href="/css/profile.css">
 </head>
+<div id="loading-screen" style="display:none;">
+  <div id="lottie-container"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+<script>
+  const loadingScreen = document.getElementById("loading-screen");
+  const animation = lottie.loadAnimation({
+    container: document.getElementById("lottie-container"),
+    renderer: "svg",
+    loop: true,
+    autoplay: false,
+    path: "/json/Trail-loading.json"
+  });
+
+  function showLoading() {
+    loadingScreen.style.display = "flex";
+    animation.play();
+  }
+
+  function hideLoading() {
+    loadingScreen.style.display = "none";
+    animation.stop();
+  }
+</script>
+
 <body>
   <header>
     <div class="icon-bar">
       <a href="/chat"><i class="fa fa-home"></i></a>
       <a href="/status/<%= partnerId%>"><i class="fa fa-user" style="color:white;"></i></a>
       <a href="/profile"><i class="fa fa-cog"></i></a>
-      <a href="/notifications"><i class="fa fa-bell" style="color:white;"></i></a>
+      <a href="/notifications" style="position: relative;">
+        <i class="fa fa-bell" style="color:white;"></i>
+        <span id="notif-count"></span>
+      </a>
     </div>
   </header>
   <h1>PROFILE</h1>
@@ -45,6 +74,7 @@
     <div class="modal-buttons" id="modalButtons">
       <button onclick="viewPhoto()">View Profile Photo</button>
       <button onclick="document.getElementById('profilePictureInput').click()">Change Profile Photo</button>
+      <button onclick="removeProfilePhoto()">Remove Profile Photo</button>
       <button onclick="closeModal()">Close</button>
     </div>
 
@@ -65,7 +95,7 @@
     id="profilePictureInput"
     style="display: none;"
     accept="image/*"
-    onchange="document.getElementById('uploadForm').submit()"
+    onchange="handleProfilePicChange()"
   />
 </form>
   <p>
@@ -172,7 +202,23 @@ function viewMyStoryFromProfile() {
   window.location.href = `/stories/view/${userId}?from=profile`;
 }
 </script>
+<script>
+  window.addEventListener("load", () => {
+    hideLoading();
+  });
+</script>
+<script>
+let uploading = false;
+
+function handleProfilePicChange() {
+  if (uploading) return;
+  uploading = true;
+  showLoading();
+  document.getElementById('uploadForm').submit();
+}
+</script>
 
   <script src="/js/profile.js"></script>
+  <script src="/js/socket-global.js"></script>
 </body>
 </html>
