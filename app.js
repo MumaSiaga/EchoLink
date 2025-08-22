@@ -15,6 +15,7 @@ const io = require('socket.io')(http);
 require('./sockets/chatSocket')(io);
 
 app.set('view engine', 'ejs');
+app.set('trust proxy', 1);
 
 app.set('views', path.join(__dirname, 'views'));
 mongoose.connect(process.env.MONGO_URI)
