@@ -23,7 +23,18 @@ mongoose.connect(process.env.MONGO_URI)
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(session({ secret: 'secretkey', resave: false, saveUninitialized: false }));
+
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'secretkey',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+  }
+}));
+
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(express.json());
