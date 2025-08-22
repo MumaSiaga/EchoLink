@@ -138,7 +138,7 @@
  <% if (user.verified === "false") { %>
  <form action="/upload/verify-age?folder=verifyage" method="POST" enctype="multipart/form-data">
   <input type="file" name="file" required />
-  <button type="submit">Verify Account</button>
+  <button onclick="showLoading()" type="submit">Verify Account</button>
 </form>
 <% } %>
     <button onclick="window.location.href='auth/logout'" class="logout-button">Logout</button>
@@ -167,7 +167,7 @@
       <% if (latestStory.mediaType === 'image') { %>
         <img src="<%= latestStory.mediaUrl %>" alt="Story Image" />
       <% } else if (latestStory.mediaType === 'video') { %>
-        <video src="<%= latestStory.mediaUrl %>" autoplay muted loop></video>
+        <video src="<%= latestStory.mediaUrl %>" autoplay loop playsinline></video>
       <% } else if (latestStory.mediaType === 'text') { %>
         <div class="text-story"><%= latestStory.textContent %></div>
       <% } %>

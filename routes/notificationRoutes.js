@@ -2,9 +2,16 @@ const express = require('express');
 const router = express.Router();
 const Notification = require('../models/Notifications');
 const { ensureAuth } = require('../middlewares/authMiddleware');
+const Chat = require('../models/Chat');
 
-router.get('/notifications', ensureAuth, (req, res) => {
-  res.render('notifications', { partnerId: req.user.partnerId , user: req.user });
+router.get('/notifications', ensureAuth, async (req, res) => {
+   const chat = await Chat.findOne({ participants: req.user._id, isClosed: false });
+   const userId = req.user._id;
+   let partnerId = null;
+   if (chat) {
+     partnerId = chat.participants.find(p => !p.equals(userId));
+   }
+   res.render('notifications', { partnerId, user: req.user });
 });
 
 router.get('/notifications/list', ensureAuth, async (req, res) => {

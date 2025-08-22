@@ -5,7 +5,8 @@
   <title>Peer Status</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-  <link rel="stylesheet" href="/css/peer.css" />
+  <link rel="stylesheet" href="/css/peerstatus.css" />
+  <script src="/socket.io/socket.io.js"></script>
   
 </head>
 <body>
@@ -22,20 +23,26 @@
   </header>
 
   <main>
-    <h1>Peer Profile</h1>
-    <img
-      src="<%= profilePicture ||'images/profile.jpg' %>"
-      class="profile-picture"
-      style="cursor: default;"
-    />
+    <div class="container">
+<div class="profile">
+  <div class="profilepicture">
+  <img src="<%= profilePicture || 'images/profile.jpg' %>" class="profile-picture">
+  </div>
+  <div class="username-container">
+    <% if (user.ProfileStatus === 'Public') { %>
+      <p class="username"><%= user.username %></p>
+    <% } else { %>
+      <p class="username">Peer</p>
+    <% } %>
+          <p><%= bio || 'No bio available.' %></p>
+          <br>
+          <p><strong>Age: </strong><%= age || 'N/A' %></p>
+  </div>
+</div>
 
-
-    <p><strong>Bio:</strong> <%= bio || 'No bio available.' %></p>
-    <p><strong>Age:</strong> <%= age || 'N/A' %></p>
-    
-    <div class="stories-container" id="storiesContainer">
-
-      <% if (stories.length === 0) { %>
+       <div class="section">
+         <div id="storiesContainer">
+         <% if (stories.length === 0) { %>
         <div class="story-card view-story">
           <div class="no-story-text">No Active Story</div>
           <div class="story-label">View Story</div>
@@ -55,6 +62,23 @@
     </div>
   <% } %>
 <% } %>
+
+</div>
+
+<div class="favorites">
+  <h2>COMING SOON</h2>
+
+</div>
+
+
+
+       </div>
+       
+
+
+        </div>
+   
+
 
   </main>
     <script>
@@ -81,7 +105,7 @@
 
 </script>
 
-  <script src="/js/profile.js"></script>
+  
   <script src="/js/socket-global.js"></script>
 </body>
 </html>
