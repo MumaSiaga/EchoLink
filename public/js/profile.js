@@ -97,6 +97,7 @@ function addStory(event) {
   input.click();
 }
 function removeProfilePhoto() {
+  showLoading();
   fetch('/profile/remove', { method: 'POST' })
     .then(res => {
       if (res.ok) location.reload();

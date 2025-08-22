@@ -361,21 +361,14 @@ button:hover,
   text-align: center;
   border-radius: 12px;
   padding: 0 6px;
-  display: none; /* Start hidden */
+  display: none; 
   user-select: none;
   pointer-events: none; 
   box-sizing: border-box;
   white-space: nowrap;
 }
 
-@media (max-width: 768px) {
-  #notif-count {
-    min-width: 16px;
-    height: 16px;
-    font-size: 10px;
-    line-height: 16px;
-  }
-}
+
 
   @media (max-width: 768px) {
   .big-section {
@@ -388,6 +381,9 @@ button:hover,
     max-width: 300px;
     height: auto;
     margin: 0 auto;
+  }
+  .profile-picture img{
+    object-fit: fill;
   }
 
   .left-section,
