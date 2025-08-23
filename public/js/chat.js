@@ -14,39 +14,36 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (!history.length) {
         container.innerHTML = '<p style="color:#888;">No previous chats</p>';
       } else {
-        history.forEach(chat => {
-          const div = document.createElement('div');
-          div.className = 'chat-history-item';
+    history.forEach(chat => {
+  const div = document.createElement('div');
+  div.className = 'chat-history-item';
 
-          const isPrivateOrClosed = chat.ProfileStatus === 'Private' || chat.isClosed;
-          const name = isPrivateOrClosed ? 'Peer' : chat.username;
-          const profilePic = isPrivateOrClosed ? '/images/profile.jpg' : (chat.profilePicture || '/images/profile.jpg');
-          const lastMessage = chat.lastMessage || '';
+  if (!chat.isClosed) {
+    div.classList.add('active');
+  }
 
-          div.innerHTML = `
-            <img src="${profilePic}" class="chat-icon" alt="User" />
-            <div class="chat-info">
-              <strong>
-                ${name}
-                ${chat.verified === 'true'
-                  ? '<img src="/images/verified.png" alt="Verified" title="Verified" style="width: 16px; height: 16px; margin-left: 1px; vertical-align: middle;">'
-                  : ''}
-              </strong>
-              <p>${lastMessage}</p>
-            </div>
-          `;
+  const profilePic = chat.profilePicture || '/images/profile.jpg';
 
-          div.addEventListener('click', () => {
-            if (!chat.isClosed) {
-              window.location.href = `/chat`;
-            } else {
-              alert(`This chat is closed. You can view past messages.`);
-              window.location.href = `/chat/view/${chat.chatId}`;
-            }
-          });
+  div.innerHTML = `
+    <img src="${profilePic}" class="chat-icon" alt="User" />
+  `;
 
-          container.appendChild(div);
-        });
+  div.addEventListener('click', () => {
+    if (!chat.isClosed) {
+      window.location.href = `/chat`;
+    } else {
+      window.location.href = `/chat/view/${chat.chatId}`;
+    }
+  });
+
+  // **Prepend active chats, append inactive**
+  if (div.classList.contains('active')) {
+    container.prepend(div); // active chats go first
+  } else {
+    container.appendChild(div);
+  }
+});
+
       }
     } catch (error) {
       console.error('Error loading chat history:', error);

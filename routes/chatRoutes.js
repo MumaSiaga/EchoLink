@@ -11,6 +11,27 @@ router.get('/', ensureAuth, (req, res) => {
   res.render('chat', { user: req.user });
 });
 router.get('/chat/history', ensureAuth, getChatHistory);
+router.delete('/chat/delete/:chatId', ensureAuth, async (req, res) => {
+  const { chatId } = req.params;
+
+  try {
+    const chat = await Chat.findById(chatId);
+    if (!chat) {
+      return res.status(404).json({ message: 'Chat not found' });
+    }
+
+    await Chat.findByIdAndDelete(chatId);
+    
+    return res.status(200).json({ message: 'Chat deleted successfully' });
+  } catch (err) {
+    console.error('Error deleting chat:', err);
+    return res.status(500).json({ message: 'Error deleting chat' });
+  }
+});
+
+
+
+
 router.get('/chat', ensureAuth, async (req, res) => {
   const user = req.user || req.session.user;
    const chat = await Chat.findOne({ participants: user._id,isClosed: false});
@@ -22,6 +43,7 @@ router.get('/chat', ensureAuth, async (req, res) => {
   console.log('User username:', user.username);
   res.render('chat', { user: req.user || req.session.user, partnerId: partnerId ? partnerId.toString() : null });
 });
+
 router.get('/profile', ensureAuth, async (req, res) => {
   const user = req.user || req.session.user;
 
@@ -68,7 +90,8 @@ router.get('/chat/view/:chatId', ensureAuth, async (req, res) => {
 
     res.render('chatView', {
       chat,
-      currentUser: userId
+      currentUser: userId,
+      chatId: chat._id,
     });
   } catch (err) {
     console.error(err);

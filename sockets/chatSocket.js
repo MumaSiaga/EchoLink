@@ -23,136 +23,142 @@ module.exports = (io) => {
   }
 
   io.on('connection', (socket) => {
-    socket.on('joinQueue', async ({ userId }) => {
-      try {
-        const user = await User.findById(userId);
-        if (!user) return;
+  socket.on('joinQueue', async ({ userId }) => {
+  try {
+    const user = await User.findById(userId);
+    if (!user) return;
 
-        const userStrId = user._id.toString();
-        const oldSocketId = userSocketMap.get(userStrId);
-        if (oldSocketId && oldSocketId !== socket.id) {
-          socketRoomMap.delete(oldSocketId);
-        }
-        userSocketMap.set(userStrId, socket.id);
+    const userStrId = user._id.toString();
 
-        socket.join(userStrId);
+    // Prevent multiple matches: if already matched, return early
+    if (activeMatches.has(userStrId)) {
+      const { roomId, chatId } = activeMatches.get(userStrId);
+      if (!socket.rooms.has(roomId)) {
+        socket.join(roomId);
+        socketRoomMap.set(socket.id, roomId);
+      }
 
-        if (activeMatches.has(userStrId)) {
-          const { roomId, chatId } = activeMatches.get(userStrId);
-          if (!socket.rooms.has(roomId)) {
-            socket.join(roomId);
-            socketRoomMap.set(socket.id, roomId);
-          }
+      const chat = await Chat.findById(chatId);
+      if (!chat) return;
 
-          const chat = await Chat.findById(chatId);
-          if (!chat) return;
+      return io.to(socket.id).emit('chatStarted', {
+        roomId,
+        chatId,
+        messages: chat.messages
+      });
+    }
 
-          return io.to(socket.id).emit('chatStarted', {
-            roomId,
-            chatId,
-            messages: chat.messages
-          });
-        }
+    // Handle multiple sockets for same user
+    const oldSocketId = userSocketMap.get(userStrId);
+    if (oldSocketId && oldSocketId !== socket.id) {
+      waitingUsers = waitingUsers.filter(u => u.socketId !== oldSocketId);
+      socketRoomMap.delete(oldSocketId);
+    }
+    userSocketMap.set(userStrId, socket.id);
+    socket.join(userStrId);
 
-        waitingUsers = waitingUsers.filter(u => u.userId !== userStrId);
-        const now = Date.now();
-        const filteredWaiting = waitingUsers.filter(u => {
-          const pairKey = getPairKey(userStrId, u.userId);
-          if (recentUnmatches.has(pairKey)) {
-            const lastUnmatchTime = recentUnmatches.get(pairKey);
-            if (now - lastUnmatchTime < UNMATCH_BLOCK_TIME) return false;
-          }
-          return true;
-        });
+    waitingUsers = waitingUsers.filter(u => u.userId !== userStrId);
 
-        const matchIndex = filteredWaiting.findIndex(u =>
-          u.userId !== userStrId && Math.abs(u.age - user.age) <= 1
-        );
-
-        if (matchIndex !== -1) {
-          const matchedUser = waitingUsers.find(
-            u => u.userId === filteredWaiting[matchIndex].userId
-          );
-
-          waitingUsers = waitingUsers.filter(u => u.userId !== matchedUser.userId);
-          const matchedUserIdStr = matchedUser.userId;
-          const roomId = getPairKey(userStrId, matchedUserIdStr);
-
-          socket.join(roomId);
-          io.sockets.sockets.get(matchedUser.socketId)?.join(roomId);
-          socketRoomMap.set(socket.id, roomId);
-          socketRoomMap.set(matchedUser.socketId, roomId);
-
-          let chat = await Chat.findOne({
-            participants: { $all: [userStrId, matchedUserIdStr] }
-          });
-
-          if (!chat) {
-            chat = new Chat({
-              participants: [userStrId, matchedUserIdStr],
-              messages: []
-            });
-            await chat.save();
-          } else {
-            await Chat.findByIdAndUpdate(chat._id, { isClosed: false });
-          }
-
-          activeMatches.set(userStrId, { roomId, chatId: chat._id, partnerId: matchedUserIdStr });
-          activeMatches.set(matchedUserIdStr, { roomId, chatId: chat._id, partnerId: userStrId });
-
-          const alreadyMatched1 = await User.findOne({
-            _id: userStrId,
-            'Matches.userId': matchedUserIdStr
-          });
-          const alreadyMatched2 = await User.findOne({
-            _id: matchedUserIdStr,
-            'Matches.userId': userStrId
-          });
-
-          if (!alreadyMatched1) {
-            await User.findByIdAndUpdate(userStrId, {
-              $addToSet: {
-                Matches: {
-                  userId: matchedUserIdStr,
-                  chatId: chat._id,
-                  createdAt: new Date()
-                }
-              }
-            });
-          }
-
-          if (!alreadyMatched2) {
-            await User.findByIdAndUpdate(matchedUserIdStr, {
-              $addToSet: {
-                Matches: {
-                  userId: userStrId,
-                  chatId: chat._id,
-                  createdAt: new Date()
-                }
-              }
-            });
-          }
-
-          io.to(roomId).emit('chatStarted', {
-            roomId,
-            chatId: chat._id,
-            messages: chat.messages
-          });
-          eventEmitter.emit('matchCreated', {
-          chatId: chat._id,
-          participants: [userStrId, matchedUserIdStr]
-          });
-
-          emitRefreshOnce(roomId);
-        } else {
-          waitingUsers.push({
-            socketId: socket.id,
-            userId: userStrId,
-            age: user.age
-          });
-        }
-      } catch {}
+    const now = Date.now();
+    const filteredWaiting = waitingUsers.filter(u => {
+      if (u.userId === userStrId) return false; // ❌ skip yourself
+      const pairKey = getPairKey(userStrId, u.userId);
+      if (recentUnmatches.has(pairKey)) {
+        const lastUnmatchTime = recentUnmatches.get(pairKey);
+        if (now - lastUnmatchTime < UNMATCH_BLOCK_TIME) return false;
+      }
+      return true;
     });
+
+    const matchIndex = filteredWaiting.findIndex(u =>
+      u.userId !== userStrId && Math.abs(u.age - user.age) <= 1
+    );
+
+    if (matchIndex !== -1) {
+      const matchedUser = waitingUsers.find(
+        u => u.userId === filteredWaiting[matchIndex].userId
+      );
+
+      waitingUsers = waitingUsers.filter(u => u.userId !== matchedUser.userId);
+      const matchedUserIdStr = matchedUser.userId;
+      const roomId = getPairKey(userStrId, matchedUserIdStr);
+
+      socket.join(roomId);
+      io.sockets.sockets.get(matchedUser.socketId)?.join(roomId);
+      socketRoomMap.set(socket.id, roomId);
+      socketRoomMap.set(matchedUser.socketId, roomId);
+
+      let chat = await Chat.findOne({
+        participants: { $all: [userStrId, matchedUserIdStr] }
+      });
+
+      if (!chat) {
+        chat = new Chat({
+          participants: [userStrId, matchedUserIdStr],
+          messages: []
+        });
+        await chat.save();
+      } else {
+        await Chat.findByIdAndUpdate(chat._id, { isClosed: false });
+      }
+
+      activeMatches.set(userStrId, { roomId, chatId: chat._id, partnerId: matchedUserIdStr });
+      activeMatches.set(matchedUserIdStr, { roomId, chatId: chat._id, partnerId: userStrId });
+
+      const alreadyMatched1 = await User.findOne({
+        _id: userStrId,
+        'Matches.userId': matchedUserIdStr
+      });
+      const alreadyMatched2 = await User.findOne({
+        _id: matchedUserIdStr,
+        'Matches.userId': userStrId
+      });
+
+      if (!alreadyMatched1) {
+        await User.findByIdAndUpdate(userStrId, {
+          $addToSet: {
+            Matches: {
+              userId: matchedUserIdStr,
+              chatId: chat._id,
+              createdAt: new Date()
+            }
+          }
+        });
+      }
+
+      if (!alreadyMatched2) {
+        await User.findByIdAndUpdate(matchedUserIdStr, {
+          $addToSet: {
+            Matches: {
+              userId: userStrId,
+              chatId: chat._id,
+              createdAt: new Date()
+            }
+          }
+        });
+      }
+
+      io.to(roomId).emit('chatStarted', {
+        roomId,
+        chatId: chat._id,
+        messages: chat.messages
+      });
+      eventEmitter.emit('matchCreated', {
+        chatId: chat._id,
+        participants: [userStrId, matchedUserIdStr]
+      });
+
+      emitRefreshOnce(roomId);
+    } else {
+      waitingUsers.push({
+        socketId: socket.id,
+        userId: userStrId,
+        age: user.age
+      });
+    }
+  } catch {}
+});
+
 
     socket.on('sendMessage', async ({ roomId, senderId, chatId, message }) => {
       try {

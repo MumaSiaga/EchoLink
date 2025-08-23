@@ -6,31 +6,158 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="/css/chat.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <style>
+    .chat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem;
+      position: relative;
+      flex-wrap: wrap; /* allows responsiveness */
+    }
+
+    .menu-container {
+      position: relative;
+    }
+
+    .delete-chat-btn {
+      background: #1e293b;
+      border: none;
+      font-size: 1.2rem;
+      cursor: pointer;
+      color: #fff;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: background 0.2s;
+    }
+
+    .delete-chat-btn:hover {
+      background: #334155;
+    }
+
+    .dropdown {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: 45px;
+      background: #1e293b;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      min-width: 140px;
+      z-index: 100;
+      overflow: hidden;
+    }
+
+    .dropdown button {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      background: none;
+      color: #fff;
+      text-align: left;
+      cursor: pointer;
+      font-size: 0.95rem;
+      transition: background 0.2s;
+    }
+
+    .dropdown button:hover {
+      background: #334155;
+    }
+
+    .chat-box {
+      margin: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    @media (max-width: 600px) {
+      .chat-header {
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .delete-chat-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 1rem;
+      }
+      .dropdown {
+        top: 40px;
+        right: 0;
+        min-width: 120px;
+      }
+    }
+  </style>
 </head>
 <body>
 
   <div class="chat-container" style="margin-top: 60px; flex-direction: column;">
-    
-   
-    <button onclick="window.history.back()" class="unmatch-btn" style="align-self: flex-start; margin: 1rem 0 0 1rem;">
-      <i class="fa fa-arrow-left"></i> Back
-    </button>
 
-    <div class="chat-box" style="margin: 1rem;">
+    <div class="chat-header">
+      <button onclick="window.history.back()" class="unmatch-btn">
+        <i class="fa fa-arrow-left"></i> Back
+      </button>
 
+      <div class="menu-container">
+        <button class="delete-chat-btn" onclick="toggleDropdown()">
+          <i class="fa fa-ellipsis-v"></i>
+        </button>
+        <div class="dropdown" id="dropdown-menu">
+          <button onclick="deleteChat()">Delete</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="chat-box">
       <% if (chat.messages.length === 0) { %>
         <p style="color: #aaa;">No messages in this chat.</p>
       <% } else { %>
         <% chat.messages.forEach(msg => { %>
           <div class="message <%= msg.sender._id.toString() === currentUser.toString() ? 'me' : 'other' %>">
             <%= msg.content %>
-            <span class="timestamp"><%= new Date(msg.timestamp).toLocaleString() %></span>
           </div>
         <% }) %>
       <% } %>
-
     </div>
   </div>
+
+  <script>
+    function toggleDropdown() {
+      const menu = document.getElementById('dropdown-menu');
+      menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+    }
+
+    document.addEventListener('click', function(e) {
+      const menu = document.getElementById('dropdown-menu');
+      if (!e.target.closest('.menu-container')) {
+        menu.style.display = 'none';
+      }
+    });
+
+   function deleteChat() {
+  if (confirm('Are you sure you want to delete this chat for both users?')) {
+    fetch(`/chat/delete/<%= chat._id %>`, { method: 'DELETE' })
+      .then(res => res.json())
+      .then(data => {
+        if (data.message === 'Chat deleted successfully') {
+          alert('Chat deleted');
+          window.location.href = '/chat';
+        } else {
+          alert('Failed to delete chat');
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        alert('Error deleting chat');
+      });
+  }
+}
+  </script>
 
 </body>
 </html>

@@ -111,7 +111,7 @@ body, html {
 }
 
 .chat-history-item:hover {
-  background-color: #444;
+  background-color: transparent;
 }
 
 .chat-icon {
@@ -261,7 +261,42 @@ body, html {
 .chat-box::-webkit-scrollbar-track {
   background: transparent;
 }
+/* Chat history container */
+#chat-history-list {
+  display: flex;
+  flex-wrap: wrap;       /* allow wrapping into rows on desktop */
+  gap: 10px;
+  overflow-x: hidden;    /* horizontal scroll only on mobile */
+  padding: 0.5rem 0;
+  flex-direction: row;   /* row layout by default */
+}
 
+/* Each chat icon wrapper */
+.chat-history-item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  flex: 0 0 auto;  /* prevents shrinking in row layout */
+}
+
+/* Profile icons */
+.chat-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid transparent; /* default no ring */
+  transition: border 0.2s ease;
+}
+
+/* Active chat ring */
+.chat-history-item.active .chat-icon {
+  border-color: #22c55e; /* green */
+}
 
 @media (max-width: 768px) {
 #notif-count {
@@ -291,4 +326,13 @@ body, html {
   .message {
     max-width: 100%;
   }
+ #chat-history-list {
+    flex-wrap: nowrap;  /* single row */
+    overflow-x: auto;   /* horizontal scroll */
+  }
+
+  .chat-history-item {
+    margin-right: 10px;
+  }
+  
 }
