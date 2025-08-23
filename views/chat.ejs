@@ -31,15 +31,23 @@
 <div class="chat-container"> 
   <section class="info-panel">
     <h1>CHAT HISTORY</h1>
-    <section id="chat-history-list"></section>
     
-     <button id="unmatch-btn" class="unmatch-btn" aria-label="Unmatch from current chat">Unmatch</button>
+    <section id="chat-history-list"></section>
+
+   
   </section>
 
   <main class="chat-wrapper" role="main">
     <header class="chat-header">
       
       <h1 id="status" aria-live="polite" aria-atomic="true">Looking for a match</h1>
+   <div class="menu-container">
+  <button id="menu-btn" class="menu-dots">⋮</button>
+  <div id="menu-dropdown" class="menu-dropdown hidden">
+    <button id="unmatch-btn">Unmatch</button>
+  </div>
+</div>
+    
     </header>
 
     <section id="chat-box" class="chat-box" aria-live="polite" tabindex="0"></section>

@@ -134,12 +134,37 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  const unmatchBtn = document.getElementById('unmatch-btn');
-  if (unmatchBtn) {
-    unmatchBtn.addEventListener('click', () => {
-      socket.emit('unmatch', { userId });
+const menuBtn = document.getElementById("menu-btn");
+  const menuDropdown = document.getElementById("menu-dropdown");
+  const menuContainer = document.querySelector(".menu-container");
+
+  if (menuBtn) {
+    menuBtn.addEventListener("click", (e) => {
+      e.stopPropagation(); // prevent closing immediately
+      menuDropdown.classList.toggle("hidden");
     });
   }
+
+  if (menuContainer) {
+    menuContainer.addEventListener("click", (e) => {
+      e.stopPropagation();
+    });
+  }
+
+  document.addEventListener("click", () => {
+    menuDropdown.classList.add("hidden");
+  });
+  const unmatchBtn = document.getElementById('unmatch-btn');
+if (unmatchBtn) {
+  unmatchBtn.addEventListener('click', (e) => {
+    e.stopPropagation(); // so it doesn’t close the menu immediately
+    socket.emit('unmatch', { userId });
+    // Optional: close menu after clicking
+    const menuDropdown = document.getElementById("menu-dropdown");
+    if (menuDropdown) menuDropdown.classList.add("hidden");
+  });
+}
+  
 
   function appendMessage(sender, content, timestamp, senderName) {
     const isYou = sender === userId;
